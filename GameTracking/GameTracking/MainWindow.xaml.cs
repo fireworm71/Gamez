@@ -85,38 +85,51 @@ namespace GameTracking
             // Set the scope for this particular service.
             parameters.Scope = SCOPE;
             
-            // Get the authorization url.  The user of your application must visit
-            // this url in order to authorize with Google.  If you are building a
-            // browser-based application, you can redirect the user to the authorization
-            // url.
-            //string authorizationUrl = OAuthUtil.CreateOAuth2AuthorizationUrl(parameters);
-            //Console.WriteLine(authorizationUrl);
-            Console.WriteLine("Please visit the URL above to authorize your OAuth "
-              + "request token.  Once that is complete, type in your access code to "
-              + "continue...");
-           // parameters.AccessCode = "";// Console.ReadLine();
-
-            ////////////////////////////////////////////////////////////////////////////
-            // STEP 4: Get the Access Token
-            ////////////////////////////////////////////////////////////////////////////
-
-            // Once the user authorizes with Google, the request token can be exchanged
-            // for a long-lived access token.  If you are building a browser-based
-            // application, you should parse the incoming request token from the url and
-            // set it in OAuthParameters before calling GetAccessToken().
-            try
+            bool needAuth = false;
+            if (needAuth)
             {
-                //OAuthUtil.GetAccessToken(parameters);
+                // Get the authorization url.  The user of your application must visit
+                // this url in order to authorize with Google.  If you are building a
+                // browser-based application, you can redirect the user to the authorization
+                // url.
+                string authorizationUrl = OAuthUtil.CreateOAuth2AuthorizationUrl(parameters);
+                Console.WriteLine(authorizationUrl);
+                Console.WriteLine("Please visit the URL above to authorize your OAuth "
+                  + "request token.  Once that is complete, type in your access code to "
+                  + "continue...");
+                parameters.AccessCode = "";// Console.ReadLine();
+
+                ////////////////////////////////////////////////////////////////////////////
+                // STEP 4: Get the Access Token
+                ////////////////////////////////////////////////////////////////////////////
+
+                // Once the user authorizes with Google, the request token can be exchanged
+                // for a long-lived access token.  If you are building a browser-based
+                // application, you should parse the incoming request token from the url and
+                // set it in OAuthParameters before calling GetAccessToken().
+                try
+                {
+                    //OAuthUtil.GetAccessToken(parameters);
+                }
+                catch (Exception ex)
+                {
+
+                }
+                string accessToken = parameters.AccessToken;
+                Console.WriteLine("OAuth Access Token: " + accessToken);
+
+                using (var sw = new StreamWriter("../../../token.txt"))
+                {
+                    sw.WriteLine(parameters.AccessToken);
+                    sw.WriteLine(parameters.RefreshToken);
+                }
             }
-            catch (Exception ex)
+
+            using (var sr = new StreamReader("../../../token.txt"))
             {
-
+                parameters.AccessToken = sr.ReadLine();
+                parameters.RefreshToken = sr.ReadLine();
             }
-            string accessToken = parameters.AccessToken;
-            Console.WriteLine("OAuth Access Token: " + accessToken);
-
-            string accessToken2 = "";
-            parameters.AccessToken = accessToken2;
 
             ////////////////////////////////////////////////////////////////////////////
             // STEP 5: Make an OAuth authorized request to Google
@@ -170,8 +183,9 @@ namespace GameTracking
                     ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
                     ListFeed listFeed = service.Query(listQuery);
 
-                    listFeed.Entries.RemoveAt(1);
-                    ((ListEntry)listFeed.Entries[0]).Elements[2].Value = "100.0";
+                    ((ListEntry)listFeed.Entries[1]).Delete();
+
+                    ((ListEntry)listFeed.Entries[0]).Elements[2].Value = "105.0";
                     ((ListEntry)listFeed.Entries[0]).Update();
 
                     listFeed.Publish();
