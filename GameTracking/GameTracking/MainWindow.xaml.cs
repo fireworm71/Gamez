@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 
 using Google.GData.Client;
 using Google.GData.Spreadsheets;
+using System.IO;
 
 namespace GameTracking
 {
@@ -44,6 +45,11 @@ namespace GameTracking
             // above.  Be sure to store this value securely.  Leaking this
             // value would enable others to act on behalf of your application!
             string CLIENT_SECRET = "";
+
+            using (var sr = new StreamReader("../../../secret.txt"))
+            {
+                CLIENT_SECRET = sr.ReadLine();
+            }
 
             // Space separated list of scopes for which to request access.
             string SCOPE = "https://spreadsheets.google.com/feeds https://docs.google.com/feeds";
@@ -83,12 +89,12 @@ namespace GameTracking
             // this url in order to authorize with Google.  If you are building a
             // browser-based application, you can redirect the user to the authorization
             // url.
-            string authorizationUrl = OAuthUtil.CreateOAuth2AuthorizationUrl(parameters);
-            Console.WriteLine(authorizationUrl);
+            //string authorizationUrl = OAuthUtil.CreateOAuth2AuthorizationUrl(parameters);
+            //Console.WriteLine(authorizationUrl);
             Console.WriteLine("Please visit the URL above to authorize your OAuth "
               + "request token.  Once that is complete, type in your access code to "
               + "continue...");
-            parameters.AccessCode = Console.ReadLine();
+           // parameters.AccessCode = "";// Console.ReadLine();
 
             ////////////////////////////////////////////////////////////////////////////
             // STEP 4: Get the Access Token
@@ -100,7 +106,7 @@ namespace GameTracking
             // set it in OAuthParameters before calling GetAccessToken().
             try
             {
-                OAuthUtil.GetAccessToken(parameters);
+                //OAuthUtil.GetAccessToken(parameters);
             }
             catch (Exception ex)
             {
@@ -130,6 +136,7 @@ namespace GameTracking
 
             // Instantiate a SpreadsheetQuery object to retrieve spreadsheets.
             SpreadsheetQuery query = new SpreadsheetQuery();
+            query.Title = "Test Monkey";
 
             // Make a request to the API and get all spreadsheets.
             SpreadsheetFeed feed = null;
@@ -156,13 +163,18 @@ namespace GameTracking
                 // Iterate through each worksheet in the spreadsheet.
                 foreach (WorksheetEntry entry in wsFeed.Entries)
                 {
-                    // Get the worksheet's title, row count, and column count.
-                    string title = entry.Title.Text;
-                    uint rowCount = entry.Rows;
-                    uint colCount = entry.Cols;
+                    // Define the URL to request the list feed of the worksheet.
+                    AtomLink listFeedLink = entry.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
 
-                    // Print the fetched information to the screen for this worksheet.
-                    Console.WriteLine(title + "- rows:" + rowCount + " cols: " + colCount);
+                    // Fetch the list feed of the worksheet.
+                    ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
+                    ListFeed listFeed = service.Query(listQuery);
+
+                    listFeed.Entries.RemoveAt(1);
+                    ((ListEntry)listFeed.Entries[0]).Elements[2].Value = "100.0";
+                    ((ListEntry)listFeed.Entries[0]).Update();
+
+                    listFeed.Publish();
                 }
             }
         }
