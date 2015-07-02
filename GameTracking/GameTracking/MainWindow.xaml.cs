@@ -178,14 +178,12 @@ namespace GameTracking
             // Fetch the list feed of the worksheet.
             ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
             ListFeed listFeed = service.Query(listQuery);
-
+            
             string url = ((ListEntry)listFeed.Entries[0]).Elements[0].Value;
-            var req = WebRequest.Create( new Uri(url) );
-            var resp = req.GetResponse();
-            using (var sr = new StreamReader(resp.GetResponseStream()))
-            {
-                
-            }
+
+            var priceClient = new WebClient();
+            priceClient.BaseAddress = url;
+            string page = priceClient.DownloadString("");
 
             listFeed.Publish();
         }
