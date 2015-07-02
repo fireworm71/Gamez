@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using Google.GData.Client;
 using Google.GData.Spreadsheets;
 using System.IO;
+using System.Net;
 
 namespace GameTracking
 {
@@ -155,7 +156,7 @@ namespace GameTracking
             SpreadsheetFeed feed = null;
             try
             {
-                 feed = service.Query(query);
+                feed = service.Query(query);
             }
             catch (Exception ex)
             {
@@ -163,34 +164,30 @@ namespace GameTracking
 
 
             // Iterate through all of the spreadsheets returned
-            foreach (SpreadsheetEntry spreadsheet in feed.Entries)
+            var spreadsheet = feed.Entries.Single();
+
+            // Make a request to the API to fetch information about all
+            // worksheets in the spreadsheet.
+            var wsFeed = ((SpreadsheetEntry)spreadsheet).Worksheets;
+
+            var toProcess = ((WorksheetFeed)wsFeed).Entries.Single(x => x.Title.Text.Equals("To Process"));
+
+            // Define the URL to request the list feed of the worksheet.
+            AtomLink listFeedLink = toProcess.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+
+            // Fetch the list feed of the worksheet.
+            ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
+            ListFeed listFeed = service.Query(listQuery);
+
+            string url = ((ListEntry)listFeed.Entries[0]).Elements[0].Value;
+            var req = WebRequest.Create( new Uri(url) );
+            var resp = req.GetResponse();
+            using (var sr = new StreamReader(resp.GetResponseStream()))
             {
-                // Print the title of this spreadsheet to the screen
-                Console.WriteLine(spreadsheet.Title.Text);
-
-
-                // Make a request to the API to fetch information about all
-                // worksheets in the spreadsheet.
-                WorksheetFeed wsFeed = spreadsheet.Worksheets;
-
-                // Iterate through each worksheet in the spreadsheet.
-                foreach (WorksheetEntry entry in wsFeed.Entries)
-                {
-                    // Define the URL to request the list feed of the worksheet.
-                    AtomLink listFeedLink = entry.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
-
-                    // Fetch the list feed of the worksheet.
-                    ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
-                    ListFeed listFeed = service.Query(listQuery);
-
-                    ((ListEntry)listFeed.Entries[1]).Delete();
-
-                    ((ListEntry)listFeed.Entries[0]).Elements[2].Value = "105.0";
-                    ((ListEntry)listFeed.Entries[0]).Update();
-
-                    listFeed.Publish();
-                }
+                
             }
+
+            listFeed.Publish();
         }
 
         /*
