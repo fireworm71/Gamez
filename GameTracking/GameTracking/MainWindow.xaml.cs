@@ -110,7 +110,7 @@ namespace GameTracking
                 // set it in OAuthParameters before calling GetAccessToken().
                 try
                 {
-                    //OAuthUtil.GetAccessToken(parameters);
+                    OAuthUtil.GetAccessToken(parameters);
                 }
                 catch (Exception ex)
                 {
@@ -178,14 +178,25 @@ namespace GameTracking
             // Fetch the list feed of the worksheet.
             ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
             ListFeed listFeed = service.Query(listQuery);
-            
-            string url = ((ListEntry)listFeed.Entries[0]).Elements[0].Value;
 
-            var priceClient = new WebClient();
-            priceClient.BaseAddress = url;
-            string page = priceClient.DownloadString("");
+            var ebay = new EbayAccess();
+            foreach (var entry in listFeed.Entries.OfType<ListEntry>())
+            {
+                string url = entry.Elements[0].Value;
+                string condition = entry.Elements[1].Value;
 
-            listFeed.Publish();
+                var dets = new GameDetailer(url, condition);
+                string name = dets.GetName();
+                string upc = dets.GetUPC();
+                double price = Math.Round(dets.GetSellingPrice(1.0f)) - 0.05;
+                string desc = dets.GetDescription();
+
+                string resp = ebay.NewListing(upc, price, new string[]{}, "", desc, "foo@gmail.com", 10004);
+                entry.Elements[3].Value = resp;
+                entry.Update();
+
+                listFeed.Publish();
+            }
         }
 
         /*
