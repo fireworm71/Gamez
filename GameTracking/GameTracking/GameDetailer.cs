@@ -72,7 +72,7 @@ namespace GameTracking
             name_start = _page.IndexOf("(", name_start);
 			string name_block = _page.Substring(name_start, 100);
 			int name_end = name_block.IndexOf(") |");
-            return name_block.Substring(1, name_end).Trim();
+            return name_block.Substring(1, name_end - 1).Trim();
         }
 
         public string GetUPC()
@@ -109,18 +109,5 @@ namespace GameTracking
 
             return string.Format(desc, title, platform, completeText);
         }
-
-        /*
-         
-def getprice(pricetype, page):
-	start = str(page).find('id="%s"' % pricetype)
-	used = str(page)[start:start+200]
-	dollar = used.find('$')
-	dec = used[dollar::].find('.')
-	dollars = float(used[dollar+1: dollar+dec+2])
-	return dollars
-         * 
-         * 
-         */
     }
 }

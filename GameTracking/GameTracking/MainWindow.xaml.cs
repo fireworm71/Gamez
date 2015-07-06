@@ -17,6 +17,7 @@ using Google.GData.Client;
 using Google.GData.Spreadsheets;
 using System.IO;
 using System.Net;
+using Microsoft.Win32;
 
 namespace GameTracking
 {
@@ -191,71 +192,18 @@ namespace GameTracking
                 double price = Math.Round(dets.GetSellingPrice(1.0f)) - 0.05;
                 string desc = dets.GetDescription();
 
-                string resp = ebay.NewListing(upc, price, new string[]{}, "", desc, "foo@gmail.com", 10004);
-                entry.Elements[3].Value = resp;
-                entry.Update();
+                var ofn = new OpenFileDialog();
+                ofn.Multiselect = true;
+                bool? ok = ofn.ShowDialog();
+                if (ok.HasValue && ok.Value)
+                {
+                    string resp = ebay.NewListing(upc, price, ofn.FileNames, "", desc, "foo@gmail.com", 10001);
+                    entry.Elements[3].Value = resp;
+                    entry.Update();
+                }
 
                 listFeed.Publish();
             }
         }
-
-        /*
-         * https://developers.google.com/google-apps/spreadsheets/
-      // Define the URL to request the list feed of the worksheet.
-      AtomLink listFeedLink = worksheet.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
-
-      // Fetch the list feed of the worksheet.
-      ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
-      ListFeed listFeed = service.Query(listQuery);
-
-      // TODO: Choose a row more intelligently based on your app's needs.
-      ListEntry row = (ListEntry)listFeed.Entries[0];
-
-      // Update the row's data.
-      foreach (ListEntry.Custom element in row.Elements)
-      {
-        if (element.LocalName == "firstname")
-        {
-          element.Value = "Sarah";
-        }
-        if (element.LocalName == "lastname")
-        {
-          element.Value = "Hunt";
-        }
-        if (element.LocalName == "age")
-        {
-          element.Value = "32";
-        }
-        if (element.LocalName == "height")
-        {
-          element.Value = "154";
-        }
-      }
-
-      // Save the row using the API.
-      row.Update();
-    }
-         */
-
-         /*
-         * 
-      // Define the URL to request the list feed of the worksheet.
-      AtomLink listFeedLink = worksheet.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
-
-      // Fetch the list feed of the worksheet.
-      ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
-      ListFeed listFeed = service.Query(listQuery);
-
-      // Create a local representation of the new row.
-      ListEntry row = new ListEntry();
-      row.Elements.Add(new ListEntry.Custom() { LocalName = "firstname", Value = "Joe" });
-      row.Elements.Add(new ListEntry.Custom() { LocalName = "lastname", Value = "Smith" });
-      row.Elements.Add(new ListEntry.Custom() { LocalName = "age", Value = "26" });
-      row.Elements.Add(new ListEntry.Custom() { LocalName = "height", Value = "176" });
-
-      // Send the new row to the API for insertion.
-      service.Insert(listFeed, row);
-         * /
-          * */
     }
 }
