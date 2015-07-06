@@ -18,17 +18,21 @@ using Google.GData.Spreadsheets;
 using System.IO;
 using System.Net;
 using Microsoft.Win32;
+using System.Collections.ObjectModel;
+using GongSolutions.Wpf.DragDrop;
 
 namespace GameTracking
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IDropTarget
     {
         public MainWindow()
         {
             InitializeComponent();
+
+            DataContext = this;
         }
 
         private void DoAuth()
@@ -143,11 +147,20 @@ namespace GameTracking
             service.RequestFactory = requestFactory;
         }
 
-        SpreadsheetsService service;
+        SpreadsheetsService service = null;
+
+        private ObservableCollection<GameToSell> _games = new ObservableCollection<GameToSell>();
+        public ObservableCollection<GameToSell> Games
+        {
+            get { return _games; }
+        }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            DoAuth();
+            if (service == null)
+            {
+                DoAuth();
+            }
 
             // Instantiate a SpreadsheetQuery object to retrieve spreadsheets.
             SpreadsheetQuery query = new SpreadsheetQuery();
@@ -183,26 +196,36 @@ namespace GameTracking
             var ebay = new EbayAccess();
             foreach (var entry in listFeed.Entries.OfType<ListEntry>())
             {
-                string url = entry.Elements[0].Value;
-                string condition = entry.Elements[1].Value;
+                _games.Add(new GameToSell(entry));
+                //var ofn = new OpenFileDialog();
+                //ofn.Multiselect = true;
+                //bool? ok = ofn.ShowDialog();
+                //if (ok.HasValue && ok.Value)
+                //{
+                //    //string resp = ebay.NewListing(upc, price, ofn.FileNames, "", desc, "foo@gmail.com", 10001);
+                //    //entry.Elements[3].Value = resp;
+                //    //entry.Update();
+                //}
 
-                var dets = new GameDetailer(url, condition);
-                string name = dets.GetName();
-                string upc = dets.GetUPC();
-                double price = Math.Round(dets.GetSellingPrice(1.0f)) - 0.05;
-                string desc = dets.GetDescription();
+                //listFeed.Publish();
+            }
+        }
 
-                var ofn = new OpenFileDialog();
-                ofn.Multiselect = true;
-                bool? ok = ofn.ShowDialog();
-                if (ok.HasValue && ok.Value)
+        public new void DragOver(IDropInfo dropInfo)
+        {
+            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
+            dropInfo.Effects = System.Windows.DragDropEffects.Link;
+        }
+
+        public new void Drop(IDropInfo dropInfo)
+        {
+            var game = dropInfo.TargetItem as GameToSell;
+            if (game != null)
+            {
+                foreach (string file in ((DataObject)dropInfo.Data).GetFileDropList())
                 {
-                    string resp = ebay.NewListing(upc, price, ofn.FileNames, "", desc, "foo@gmail.com", 10001);
-                    entry.Elements[3].Value = resp;
-                    entry.Update();
+                    game.PicturePaths.Add(file);
                 }
-
-                listFeed.Publish();
             }
         }
     }

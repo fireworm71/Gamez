@@ -16,15 +16,13 @@ namespace GameTracking
         {
             _url = url;
             _condition = condition;
+        }
 
+        public async Task FetchPage()
+        {
             var priceClient = new WebClient();
-            priceClient.BaseAddress = url;
-            _page = priceClient.DownloadString("");
-
-            double used = GetPrice("used_price");
-            double complete = GetPrice("complete_price");
-            double new_ = GetPrice("new_price");
-            string name = GetName();
+            priceClient.BaseAddress = _url;
+            _page = await priceClient.DownloadStringTaskAsync("");
         }
 
         private double GetPrice(string priceType)

@@ -1,8 +1,24 @@
 ﻿<Window x:Class="GameTracking.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:gong="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <Button Click="Button_Click">Google!</Button>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ListView ItemsSource="{Binding Games}"
+                  gong:DragDrop.IsDropTarget="True"
+                  gong:DragDrop.DropHandler="{Binding}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Platform" DisplayMemberBinding="{Binding Platform}" />
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="UPC" DisplayMemberBinding="{Binding Upc}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Grid.Row="1" Click="Button_Click">Google!</Button>
     </Grid>
 </Window>
