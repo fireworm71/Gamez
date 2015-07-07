@@ -155,7 +155,7 @@ namespace GameTracking
             get { return _games; }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Import_Click(object sender, RoutedEventArgs e)
         {
             if (service == null)
             {
@@ -197,17 +197,19 @@ namespace GameTracking
             foreach (var entry in listFeed.Entries.OfType<ListEntry>())
             {
                 _games.Add(new GameToSell(entry));
-                //var ofn = new OpenFileDialog();
-                //ofn.Multiselect = true;
-                //bool? ok = ofn.ShowDialog();
-                //if (ok.HasValue && ok.Value)
-                //{
-                //    //string resp = ebay.NewListing(upc, price, ofn.FileNames, "", desc, "foo@gmail.com", 10001);
-                //    //entry.Elements[3].Value = resp;
-                //    //entry.Update();
-                //}
+            }
+        }
+        
+        private void Publish_Click(object sender, RoutedEventArgs e)
+        {
+            bool live = false;
 
-                //listFeed.Publish();
+            var ebay = new EbayAccess();
+            foreach (var game in _games)
+            {
+                string response;
+                string id;
+                bool success = ebay.NewListing(live, game.Upc, game.Price, game.PicturePaths.ToArray(), "", game.Description, "oo@gmail.com", 10001, out response, out id);
             }
         }
 
@@ -222,6 +224,7 @@ namespace GameTracking
             var game = dropInfo.TargetItem as GameToSell;
             if (game != null)
             {
+                game.PicturePaths.Clear();
                 foreach (string file in ((DataObject)dropInfo.Data).GetFileDropList())
                 {
                     game.PicturePaths.Add(file);

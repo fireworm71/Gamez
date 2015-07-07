@@ -1,5 +1,4 @@
-﻿using GongSolutions.Wpf.DragDrop;
-using Google.GData.Spreadsheets;
+﻿using Google.GData.Spreadsheets;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,8 +10,15 @@ using System.Threading.Tasks;
 
 namespace GameTracking
 {
-    public class GameToSell : INotifyPropertyChanged, IDropTarget
+    public class GameToSell : INotifyPropertyChanged
     {
+        private bool _publish = false;
+        public bool Publish
+        {
+            get { return _publish; }
+            set { _publish = value; OnPropertyChanged(); }
+        }
+
         private string _url;
         public string Url
         {
@@ -48,6 +54,21 @@ namespace GameTracking
             private set { _upc = value; OnPropertyChanged(); }
         }
 
+        private double _price;
+        public double Price
+        {
+            get { return _price; }
+            private set { _price = value; OnPropertyChanged(); }
+        }
+
+        private string _description;
+        public string Description
+        {
+            get { return _description; }
+            private set { _description = value; OnPropertyChanged(); }
+        }
+
+
         private ObservableCollection<string> _picturePaths = new ObservableCollection<string>();
         public ObservableCollection<string> PicturePaths
         {
@@ -79,9 +100,8 @@ namespace GameTracking
             Name = _details.GetName();
             Upc = _details.GetUPC();
             Platform = _details.GetPlatform();
-
-            //double price = Math.Round(_details.GetSellingPrice(1.0f)) - 0.05;
-            //string desc = _details.GetDescription();
+            Price = Math.Round(_details.GetSellingPrice(1.1f)) - 0.05;
+            Description = _details.GetDescription();
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -94,16 +114,9 @@ namespace GameTracking
             }
         }
 
-        public void DragOver(IDropInfo dropInfo)
+        public void UploadResponse(string response)
         {
-            //throw new NotImplementedException();
-            dropInfo.DropTargetAdorner = DropTargetAdorners.Highlight;
-            dropInfo.Effects = System.Windows.DragDropEffects.Link;
-        }
 
-        public void Drop(IDropInfo dropInfo)
-        {
-            //throw new NotImplementedException();
         }
     }
 }

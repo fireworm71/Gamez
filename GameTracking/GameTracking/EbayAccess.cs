@@ -18,7 +18,7 @@ namespace GameTracking
         /// Populate eBay SDK ApiContext object with data from application configuration file
         /// </summary>
         /// <returns>ApiContext</returns>
-        static ApiContext GetApiContext()
+        static ApiContext GetApiContext(bool live)
         {
             //apiContext is a singleton,
             //to avoid duplicate config file reading
@@ -29,15 +29,29 @@ namespace GameTracking
             else
             {
                 apiContext = new ApiContext();
-
-                //set Api Server Url
-                apiContext.SoapApiServerUrl = "https://api.sandbox.ebay.com/wsapi";
-                apiContext.EPSServerUrl = "https://api.sandbox.ebay.com/ws/api.dll";
-                //set Api Token to access eBay Api Server
                 ApiCredential apiCredential = new ApiCredential();
-                using (var sw = new StreamReader("../../../ebayaccess.txt"))
+
+                if (live)
                 {
-                    apiCredential.eBayToken = sw.ReadLine();
+                    //set Api Server Url
+                    apiContext.SoapApiServerUrl = "https://api.ebay.com/wsapi";
+                    apiContext.EPSServerUrl = "https://api.ebay.com/ws/api.dll";
+                    //set Api Token to access eBay Api Server
+                    using (var sw = new StreamReader("../../../ebayliveaccess.txt"))
+                    {
+                        apiCredential.eBayToken = sw.ReadLine();
+                    }
+                }
+                else 
+                {
+                    //set Api Server Url
+                    apiContext.SoapApiServerUrl = "https://api.sandbox.ebay.com/wsapi";
+                    apiContext.EPSServerUrl = "https://api.sandbox.ebay.com/ws/api.dll";
+                    //set Api Token to access eBay Api Server
+                    using (var sw = new StreamReader("../../../ebayaccess.txt"))
+                    {
+                        apiCredential.eBayToken = sw.ReadLine();
+                    }
                 }
                 apiContext.ApiCredential = apiCredential;
                 //set eBay Site target to US
@@ -47,9 +61,9 @@ namespace GameTracking
             }
         }
 
-        public string NewListing(string upc, double price, string[] picFiles, string titleOverride, string description, string paypalEmail, int locationZip)
+        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, string paypalEmail, int locationZip, out string response, out string id)
         {
-            ApiContext apiContext = GetApiContext();
+            ApiContext apiContext = GetApiContext(live);
 
             var addItem = new AddFixedPriceItemCall(apiContext);
             addItem.Item = new ItemType();
@@ -116,10 +130,14 @@ namespace GameTracking
             }
             catch (Exception ex)
             {
-                return ex.ToString();
+                id = "-1";
+                response = ex.ToString();
+                return false;
             }
 
-            return "http://cgi.sandbox.ebay.com/ws/eBayISAPI.dll?ViewItem&" + addItem.ApiResponse.ItemID;
+            response = "OK!";
+            id = addItem.ApiResponse.ItemID;
+            return true;
         }
     }
 }
