@@ -209,7 +209,14 @@ namespace GameTracking
             {
                 string response;
                 string id;
-                bool success = ebay.NewListing(live, game.Upc, game.Price, game.PicturePaths.ToArray(), "", game.Description, "oo@gmail.com", 10001, out response, out id);
+                if (game.Publish)
+                {
+                    bool success = ebay.NewListing(live, game.Upc, game.Price, game.PicturePaths.ToArray(), "", game.Description, "foo@gmail.com", 10001, game.Shipping, out response, out id);
+                    if (success)
+                    {
+                        game.UploadResponse(response, id);
+                    }
+                }
             }
         }
 

@@ -29,7 +29,15 @@
                     <GridViewColumn Header="Platform" DisplayMemberBinding="{Binding Platform}" />
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="300"/>
                     <GridViewColumn Header="UPC" DisplayMemberBinding="{Binding Upc}" />
-                    <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}" Width="100"/>
+                    <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}" Width="150"/>
+                    <GridViewColumn Header="Shipping" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <ComboBox ItemsSource="{Binding ShippingMethods}" SelectedValue="{Binding Shipping}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    
                     <GridViewColumn Header="Images">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
@@ -41,7 +49,7 @@
                                     </ItemsControl.ItemTemplate>
                                     <ItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
-                                            <UniformGrid Width="288" Height="128" Rows="2" Columns="4"/>
+                                            <UniformGrid Width="576" Height="64" Rows="1" Columns="12"/>
                                         </ItemsPanelTemplate>
                                     </ItemsControl.ItemsPanel>
                                 </ItemsControl>

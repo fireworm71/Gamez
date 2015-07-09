@@ -61,7 +61,7 @@ namespace GameTracking
             }
         }
 
-        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, string paypalEmail, int locationZip, out string response, out string id)
+        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, string paypalEmail, int locationZip, Shipping shipping, out string response, out string id)
         {
             ApiContext apiContext = GetApiContext(live);
 
@@ -105,6 +105,19 @@ namespace GameTracking
                 ShippingCostPaidByOption = "Buyer"
             };
 
+            string shippingMethod = "";
+            switch (shipping)
+            {
+                case Shipping.FirstClass:
+                    shippingMethod = "USPSFirstClass";
+                    break;
+                case Shipping.SmallFlatRate:
+                    shippingMethod = "USPSPriorityMailSmallFlatRateBox";
+                    break;
+                default:
+                    break;
+            }
+
             addItem.Item.ShippingDetails = new ShippingDetailsType
             {
                 ShippingType = ShippingTypeCodeType.Calculated,
@@ -118,7 +131,7 @@ namespace GameTracking
                 },
                 ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
                     new ShippingServiceOptionsType{
-                        ShippingService = "USPSFirstClass",
+                        ShippingService = shippingMethod,
                         ShippingServicePriority = 1,
                     }
                 }

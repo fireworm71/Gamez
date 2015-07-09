@@ -36,22 +36,29 @@ namespace GameTracking
         }
 
         public double GetSellingPrice(double markup)
-        {            
-			double used = GetPrice("used_price");
-			double complete = 0;
-			double new_ = 0;
-			if (_condition == "CiB")
-				complete = GetPrice("complete_price");
-			if (_condition == "NEW")
-				new_ = GetPrice("new_price");
-				complete = GetPrice("complete_price");
-					
-						
-			double max = used;
-			if (complete > max)
-				max = complete;
-			if (new_ > max)
-				max = new_;
+        {
+            double used = GetPrice("used_price");
+            double complete = 0;
+            double new_ = 0;
+            if (_condition == "CiB")
+            {
+                complete = GetPrice("complete_price");
+            }
+            if (_condition == "NEW")
+            {
+                new_ = GetPrice("new_price");
+                complete = GetPrice("complete_price");
+            }
+
+            double max = used;
+            if (complete > max)
+            {
+                max = complete;
+            }
+            if (new_ > max)
+            {
+                max = new_;
+            }
 
             return max * markup;
         }
