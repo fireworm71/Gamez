@@ -206,7 +206,7 @@ namespace GameTracking
         
         private void Publish_Click(object sender, RoutedEventArgs e)
         {
-            bool live = false;
+            bool live = true;
 
             // Define the URL to request the list feed of the worksheet.
             AtomLink listFeedLink = _processedSheet.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
@@ -216,6 +216,9 @@ namespace GameTracking
             ListFeed listFeed = _service.Query(listQuery);
 
             var ebay = new EbayAccess();
+
+            ebay.GetListing(live, "171852187199");
+
             foreach (var game in _games)
             {
                 string response;
