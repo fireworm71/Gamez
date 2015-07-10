@@ -53,6 +53,7 @@ namespace GameTracking
                         apiCredential.eBayToken = sw.ReadLine();
                     }
                 }
+
                 apiContext.ApiCredential = apiCredential;
                 //set eBay Site target to US
                 apiContext.Site = SiteCodeType.US;
@@ -151,6 +152,22 @@ namespace GameTracking
             response = "OK!";
             id = addItem.ApiResponse.ItemID;
             return true;
+        }
+
+        public void GetListing(bool live, string id)
+        {
+            ApiContext apiContext = GetApiContext(live);
+
+            var getItem = new GetItemCall(apiContext);
+            getItem.ItemID = id;
+            try
+            {
+                getItem.Execute();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
     }
 }

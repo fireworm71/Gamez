@@ -202,22 +202,25 @@ namespace GameTracking
         
         private void Publish_Click(object sender, RoutedEventArgs e)
         {
-            bool live = false;
+            bool live = true;
 
             var ebay = new EbayAccess();
-            foreach (var game in _games)
-            {
-                string response;
-                string id;
-                if (game.Publish)
-                {
-                    bool success = ebay.NewListing(live, game.Upc, game.Price, game.PicturePaths.ToArray(), "", game.Description, "foo@gmail.com", 10001, game.Shipping, out response, out id);
-                    if (success)
-                    {
-                        game.UploadResponse(response, id);
-                    }
-                }
-            }
+
+            ebay.GetListing(live, "171852187199");
+
+            //foreach (var game in _games)
+            //{
+            //    string response;
+            //    string id;
+            //    if (game.Publish)
+            //    {
+            //        bool success = ebay.NewListing(live, game.Upc, game.Price, game.PicturePaths.ToArray(), "", game.Description, "foo@gmail.com", 10001, game.Shipping, out response, out id);
+            //        if (success)
+            //        {
+            //            game.UploadResponse(response, id);
+            //        }
+            //    }
+            //}
         }
 
         public new void DragOver(IDropInfo dropInfo)
