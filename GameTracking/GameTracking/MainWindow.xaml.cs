@@ -143,11 +143,13 @@ namespace GameTracking
 
             // Initialize the variables needed to make the request
             GOAuth2RequestFactory requestFactory = new GOAuth2RequestFactory(null, "My Great Games!", parameters);
-            service = new SpreadsheetsService("My Great Games!");
-            service.RequestFactory = requestFactory;
+            _service = new SpreadsheetsService("My Great Games!");
+            _service.RequestFactory = requestFactory;
         }
 
-        SpreadsheetsService service = null;
+        SpreadsheetsService _service = null;
+
+        private AtomEntry _processedSheet;
 
         private ObservableCollection<GameToSell> _games = new ObservableCollection<GameToSell>();
         public ObservableCollection<GameToSell> Games
@@ -157,7 +159,7 @@ namespace GameTracking
 
         private void Import_Click(object sender, RoutedEventArgs e)
         {
-            if (service == null)
+            if (_service == null)
             {
                 DoAuth();
             }
@@ -170,7 +172,7 @@ namespace GameTracking
             SpreadsheetFeed feed = null;
             try
             {
-                feed = service.Query(query);
+                feed = _service.Query(query);
             }
             catch (Exception ex)
             {
@@ -191,18 +193,27 @@ namespace GameTracking
 
             // Fetch the list feed of the worksheet.
             ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
-            ListFeed listFeed = service.Query(listQuery);
+            ListFeed listFeed = _service.Query(listQuery);
 
             var ebay = new EbayAccess();
             foreach (var entry in listFeed.Entries.OfType<ListEntry>())
             {
                 _games.Add(new GameToSell(entry));
             }
+
+            _processedSheet = ((WorksheetFeed)wsFeed).Entries.Single(x => x.Title.Text.Equals("Processed"));
         }
         
         private void Publish_Click(object sender, RoutedEventArgs e)
         {
             bool live = false;
+
+            // Define the URL to request the list feed of the worksheet.
+            AtomLink listFeedLink = _processedSheet.Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+
+            // Fetch the list feed of the worksheet.
+            ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
+            ListFeed listFeed = _service.Query(listQuery);
 
             var ebay = new EbayAccess();
             foreach (var game in _games)
@@ -215,6 +226,14 @@ namespace GameTracking
                     if (success)
                     {
                         game.UploadResponse(response, id);
+
+                        ListEntry newEntry = new ListEntry();
+                        newEntry.Elements.Add(new ListEntry.Custom { LocalName = "Name", Value = game.Name });
+                        newEntry.Elements.Add(new ListEntry.Custom { LocalName = "Condition", Value = game.Condition });
+                        newEntry.Elements.Add(new ListEntry.Custom { LocalName = "ebay Item Id", Value = id });
+
+                        listFeed.Entries.Add(newEntry);
+                        listFeed.Publish();
                     }
                 }
             }
