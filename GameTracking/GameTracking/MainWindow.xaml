@@ -26,8 +26,62 @@
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
+                    <GridViewColumn Header="Publish" Width="100">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBlock>
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <Hyperlink NavigateUri="{Binding ViewUrl}" RequestNavigate="Hyperlink_RequestNavigate">
+                                            Ebay Link
+                                        </Hyperlink>
+                                    </TextBlock>
+                                    <Button Grid.Row="0" Click="PublishSingle_Click" IsEnabled="{Binding CanPublish}">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <TextBlock>
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Publish"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding CanPublish}" Value="False">
+                                                            <Setter Property="Text" Value="Publishing..."/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                     <GridViewColumn Header="Platform" DisplayMemberBinding="{Binding Platform}" />
-                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="300"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="250"/>
                     <GridViewColumn Header="UPC" DisplayMemberBinding="{Binding Upc}" />
                     <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}" Width="150"/>
                     <GridViewColumn Header="Shipping" Width="100">

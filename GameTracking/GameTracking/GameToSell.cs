@@ -67,6 +67,68 @@ namespace GameTracking
             });
         }
 
+        public async Task<ListEntry> PublishToEbay(bool live)
+        {
+            CanPublish = false;
+            var ebay = new EbayAccess();
+            string ebayId = await Task.Run(() =>
+                {
+                    string response;
+                    string id; 
+                    bool succ = ebay.NewListing(live, Upc, Price, PicturePaths.ToArray(), "", Description, "foo@gmail.com", 10001, Shipping, out response, out id);
+
+                    UploadResponse(response, id);
+                    return id;
+                });
+            CanPublish = true;
+            EbayId = ebayId;
+            if (ebayId != "-1")
+            {
+                ListEntry newEntry = new ListEntry();
+                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "name", Value = Name });
+                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "condition", Value = Condition });
+                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "ebayitemid", Value = ebayId });
+
+                string viewUrl;
+                ebay.GetListing(live, ebayId, out viewUrl);
+                if (viewUrl != null)
+                {
+                    ViewUrl = viewUrl;
+                    newEntry.Elements.Add(new ListEntry.Custom { LocalName = "viewlink", Value = viewUrl });
+                }
+                else
+                {
+                    newEntry.Elements.Add(new ListEntry.Custom { LocalName = "viewlink", Value = "Error getting URL!" });
+                }
+                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "soldfor", Value = "" });
+                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "status", Value = "Listed!" });
+
+                return newEntry;
+            }
+            return null;
+        }
+
+        private string _viewUrl = null;
+        public string ViewUrl
+        {
+            get { return _viewUrl; }
+            set { _viewUrl = value; OnPropertyChanged(); }
+        }
+
+        private string _ebayId = "";
+        public string EbayId
+        {
+            get { return _ebayId; }
+            set { _ebayId = value; OnPropertyChanged(); }
+        }
+
+        private bool _canPublish = true;
+        public bool CanPublish
+        {
+            get { return _canPublish; }
+            set { _canPublish = value; OnPropertyChanged(); }
+        }
+
         private bool _publish = false;
         public bool Publish
         {

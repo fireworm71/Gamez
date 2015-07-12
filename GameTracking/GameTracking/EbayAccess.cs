@@ -154,7 +154,7 @@ namespace GameTracking
             return true;
         }
 
-        public void GetListing(bool live, string id)
+        public void GetListing(bool live, string id, out string viewUrl)
         {
             ApiContext apiContext = GetApiContext(live);
 
@@ -166,8 +166,10 @@ namespace GameTracking
             }
             catch (Exception ex)
             {
-
+                viewUrl = null;
+                return;
             }
+            viewUrl = getItem.ApiResponse.Item.ListingDetails.ViewItemURL;
         }
     }
 }
