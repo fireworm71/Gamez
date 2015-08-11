@@ -14,6 +14,9 @@ namespace GameTracking
     {
         private static ApiContext apiContext = null;
 
+        private static string paypalEmail = null;
+        private static int locationZip = 0;
+
         /// <summary>
         /// Populate eBay SDK ApiContext object with data from application configuration file
         /// </summary>
@@ -58,11 +61,18 @@ namespace GameTracking
                 //set eBay Site target to US
                 apiContext.Site = SiteCodeType.US;
 
+
+                using (var sw = new StreamReader("../../../ebayinfo.txt"))
+                {
+                    paypalEmail = sw.ReadLine();
+                    locationZip = int.Parse(sw.ReadLine());
+                }
+
                 return apiContext;
             }
         }
 
-        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, string paypalEmail, int locationZip, Shipping shipping, out string response, out string id)
+        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, Shipping shipping, out string response, out string id)
         {
             ApiContext apiContext = GetApiContext(live);
 
@@ -107,13 +117,29 @@ namespace GameTracking
             };
 
             string shippingMethod = "";
+            decimal lbs = 0;
+            decimal oz = 0;
             switch (shipping)
             {
                 case Shipping.FirstClass:
                     shippingMethod = "USPSFirstClass";
+                    oz = 5;
                     break;
                 case Shipping.SmallFlatRate:
                     shippingMethod = "USPSPriorityMailSmallFlatRateBox";
+                    lbs = 5;
+                    break;
+                case Shipping.MediumFlatRate:
+                    shippingMethod = "USPSPriorityMailFlatRateBox";
+                    lbs = 10;
+                    break;
+                case Shipping.LargeFlatRate:
+                    shippingMethod = "USPSPriorityMailLargeFlatRateBox";
+                    lbs = 15;
+                    break;
+                case Shipping.PriorityByWeight:
+                    shippingMethod = "USPSPriorityMail";
+                    lbs = 2;
                     break;
                 default:
                     break;
@@ -127,8 +153,8 @@ namespace GameTracking
                     OriginatingPostalCode = locationZip.ToString(),
                     PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
                     ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
-                    WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = 0 },
-                    WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = 5 }
+                    WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = lbs },
+                    WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = oz }
                 },
                 ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
                     new ShippingServiceOptionsType{
@@ -154,7 +180,24 @@ namespace GameTracking
             return true;
         }
 
-        public void GetListing(bool live, string id, out string viewUrl)
+        public enum EbayStatus
+        {
+            Unlisted,
+            InProgressAuction,
+            InProgressBuyItNow,
+            Sold,
+            Unsold,
+        }
+
+        public class ListingInfo
+        {
+            public string ViewUrl { get; set; }
+            public decimal ListPrice { get; set; }
+            public EbayStatus CurrentStatus { get; set; }
+            public decimal SoldPrice { get; set; }
+        }
+
+        public void GetListingInfo(bool live, string id, out ListingInfo info)
         {
             ApiContext apiContext = GetApiContext(live);
 
@@ -166,10 +209,25 @@ namespace GameTracking
             }
             catch (Exception ex)
             {
-                viewUrl = null;
+                info = new ListingInfo();
+                info.CurrentStatus = EbayStatus.Unlisted;
                 return;
             }
-            viewUrl = getItem.ApiResponse.Item.ListingDetails.ViewItemURL;
+            info = new ListingInfo();
+            
+            info.ViewUrl = getItem.ApiResponse.Item.ListingDetails.ViewItemURL;
+            switch (getItem.ApiResponse.Item.SellingStatus.ListingStatus)
+            {
+                case ListingStatusCodeType.Active:
+                    info.CurrentStatus = EbayStatus.InProgressBuyItNow;
+                    break;
+                case ListingStatusCodeType.Ended:
+                    info.CurrentStatus = EbayStatus.Unsold;
+                    break;
+                case ListingStatusCodeType.Completed:
+                    info.CurrentStatus = EbayStatus.Sold;
+                    break;
+            }
         }
     }
 }

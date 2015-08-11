@@ -29,6 +29,8 @@ namespace GameTracking
     /// </summary>
     public partial class MainWindow : Window, IDropTarget
     {
+        public static bool live = true;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -217,11 +219,11 @@ namespace GameTracking
             {
                 if (string.IsNullOrEmpty(entry.Elements[3].Value))
                 {
-                    string viewUrl;
-                    ebay.GetListing(live, entry.Elements[2].Value, out viewUrl);
-                    if (viewUrl != null)
+                    EbayAccess.ListingInfo info;
+                    ebay.GetListingInfo(live, entry.Elements[2].Value, out info);
+                    if (info.ViewUrl != null)
                     {
-                        entry.Elements[3].Value = viewUrl;
+                        entry.Elements[3].Value = info.ViewUrl;
                     }
                     else
                     {
@@ -232,9 +234,7 @@ namespace GameTracking
             }
         }
         
-        bool live = true;
-        
-        private async void Publish_Click(object sender, RoutedEventArgs e)
+        private void Publish_Click(object sender, RoutedEventArgs e)
         {
             foreach (var game in _games)
             {

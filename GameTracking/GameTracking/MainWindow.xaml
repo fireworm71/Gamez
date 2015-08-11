@@ -34,7 +34,11 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
-                                    <TextBlock>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Setter Property="Visibility" Value="Visible"/>
@@ -49,7 +53,19 @@
                                             Ebay Link
                                         </Hyperlink>
                                     </TextBlock>
-                                    <Button Grid.Row="0" Click="PublishSingle_Click" IsEnabled="{Binding CanPublish}">
+                                    <TextBlock Grid.Column="1">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding ListingInfo.CurrentStatus}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ListingInfo}" Value="{x:Null}">                                                        
+                                                        <Setter Property="Text" Value=""/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <Button Grid.Row="0" Grid.ColumnSpan="2" Click="PublishSingle_Click" IsEnabled="{Binding CanPublish}">
                                         <Button.Style>
                                             <Style TargetType="Button">
                                                 <Setter Property="Visibility" Value="Collapsed"/>

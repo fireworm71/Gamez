@@ -14,6 +14,9 @@ namespace GameTracking
     {
         FirstClass,
         SmallFlatRate,
+        MediumFlatRate,
+        LargeFlatRate,
+        PriorityByWeight,
     }
 
     public enum SheetColumns
@@ -75,7 +78,7 @@ namespace GameTracking
                 {
                     string response;
                     string id; 
-                    bool succ = ebay.NewListing(live, Upc, Price, PicturePaths.ToArray(), "", Description, "foo@gmail.com", 10001, Shipping, out response, out id);
+                    bool succ = ebay.NewListing(live, Upc, Price, PicturePaths.ToArray(), "", Description, Shipping, out response, out id);
 
                     UploadResponse(response, id);
                     return id;
@@ -89,12 +92,12 @@ namespace GameTracking
                 newEntry.Elements.Add(new ListEntry.Custom { LocalName = "condition", Value = Condition });
                 newEntry.Elements.Add(new ListEntry.Custom { LocalName = "ebayitemid", Value = ebayId });
 
-                string viewUrl;
-                ebay.GetListing(live, ebayId, out viewUrl);
-                if (viewUrl != null)
+                EbayAccess.ListingInfo info;
+                ebay.GetListingInfo(live, ebayId, out info);
+                if (info.ViewUrl != null)
                 {
-                    ViewUrl = viewUrl;
-                    newEntry.Elements.Add(new ListEntry.Custom { LocalName = "viewlink", Value = viewUrl });
+                    ViewUrl = info.ViewUrl;
+                    newEntry.Elements.Add(new ListEntry.Custom { LocalName = "viewlink", Value = info.ViewUrl });
                 }
                 else
                 {
@@ -198,6 +201,13 @@ namespace GameTracking
             get { return _listEntry; }
         }
 
+        private EbayAccess.ListingInfo _listingInfo;
+        public EbayAccess.ListingInfo ListingInfo
+        {
+            get { return _listingInfo; }
+            set { _listingInfo = value; OnPropertyChanged(); }
+        }
+
         private GameDetailer _details;
 
         public GameToSell(ListEntry listEntry)
@@ -225,6 +235,18 @@ namespace GameTracking
             Description = _details.GetDescription();
 
             _listEntry.Elements[(int)SheetColumns.Value].Value = Price.ToString();
+
+            string ebayId = _listEntry.Elements[(int)SheetColumns.ID].Value;
+
+            var ebay = new EbayAccess();
+            EbayAccess.ListingInfo info;
+            await Task.Run(() =>
+            {
+                ebay.GetListingInfo(MainWindow.live, ebayId, out info);
+                ViewUrl = info.ViewUrl;
+                ListingInfo = info;
+            });
+
 
             UpdateListEntry();
         }
