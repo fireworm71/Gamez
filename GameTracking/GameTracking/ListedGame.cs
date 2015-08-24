@@ -30,7 +30,7 @@ namespace GameTracking
         ID,
     }
 
-    public class GameToSell : INotifyPropertyChanged
+    public class ListedGame : INotifyPropertyChanged
     {
         private Shipping _shipping = Shipping.FirstClass;
         public Shipping Shipping
@@ -167,6 +167,30 @@ namespace GameTracking
             private set { _platform = value; OnPropertyChanged(); }
         }
 
+        private bool _hasInstructions;
+        public bool HasInstructions
+        {
+            get { return _hasInstructions; }
+            set
+            {
+                _hasInstructions = value; 
+                OnPropertyChanged();
+                Description = _details.GetDescription(HasCase, HasInstructions);
+            }
+        }
+
+        private bool _hasCase;
+        public bool HasCase
+        {
+            get { return _hasCase; }
+            set
+            {
+                _hasCase = value; 
+                OnPropertyChanged();
+                Description = _details.GetDescription(HasCase, HasInstructions);
+            }
+        }
+
         private string _upc;
         public string Upc
         {
@@ -210,7 +234,7 @@ namespace GameTracking
 
         private GameDetailer _details;
 
-        public GameToSell(ListEntry listEntry)
+        public ListedGame(ListEntry listEntry)
         {
             _listEntry = listEntry;
 
@@ -232,7 +256,7 @@ namespace GameTracking
             Upc = _details.GetUPC();
             Platform = _details.GetPlatform();
             Price = Math.Round(_details.GetSellingPrice(1.1f)) - 0.05;
-            Description = _details.GetDescription();
+            Description = _details.GetDescription(HasCase, HasInstructions);
 
             _listEntry.Elements[(int)SheetColumns.Value].Value = Price.ToString();
 
@@ -242,7 +266,7 @@ namespace GameTracking
             EbayAccess.ListingInfo info;
             await Task.Run(() =>
             {
-                ebay.GetListingInfo(MainWindow.live, ebayId, out info);
+                ebay.GetListingInfo(ToProcess.live, ebayId, out info);
                 ViewUrl = info.ViewUrl;
                 ListingInfo = info;
             });

@@ -40,7 +40,7 @@ namespace GameTracking
             double used = GetPrice("used_price");
             double complete = 0;
             double new_ = 0;
-            if (_condition == "CiB")
+            if (_condition == "CiB" || _condition == "WithInstructions")
             {
                 complete = GetPrice("complete_price");
             }
@@ -51,14 +51,30 @@ namespace GameTracking
             }
 
             double max = used;
-            if (complete > max)
+            if (_condition == "WithInstructions")
             {
-                max = complete;
+                if (complete > max)
+                {
+                    max += complete;
+                    max /= 2.0;
+                }
+                else
+                {
+                    max *= 1.2;
+                }
             }
-            if (new_ > max)
+            else
             {
-                max = new_;
+                if (complete > max)
+                {
+                    max = complete;
+                }
+                if (new_ > max)
+                {
+                    max = new_;
+                }
             }
+
 
             return max * markup;
         }
@@ -91,7 +107,7 @@ namespace GameTracking
             return upcString;
         }
 
-        public string GetDescription()
+        public string GetDescription(bool hasCase, bool hasInstructions)
         {
             string completeText = "";
             switch (_condition)
@@ -101,6 +117,12 @@ namespace GameTracking
                     break;
                 case "New":
                     completeText = "factory sealed";
+                    break;
+                case "WithInstructions":
+                    completeText = "game and instructions";
+                    break;
+                case "WithCase":
+                    completeText = "game and original box";
                     break;
                 default:
                     completeText = "game only";
