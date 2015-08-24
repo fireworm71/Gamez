@@ -27,7 +27,7 @@ namespace GameTracking
     /// <summary>
     /// Interaction logic for ToProcess.xaml
     /// </summary>
-    public partial class ToProcess : UserControl
+    public partial class ToProcess : UserControl, IDropTarget
     {
         public static bool live = true;
 

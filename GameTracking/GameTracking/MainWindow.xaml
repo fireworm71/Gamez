@@ -4,7 +4,8 @@
 		xmlns:local="clr-namespace:GameTracking"
 		xmlns:gong="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
         Title="MainWindow" Height="640" Width="900">
-    <TabControl>
+
+    <TabControl x:Name="_tabs">
         <TabControl.Items>
             <TabItem Header="To Process">
                 <TabItem.Content>

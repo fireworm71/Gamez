@@ -28,7 +28,7 @@ namespace GameTracking
     /// <summary>
     /// Interaction logic for Processed.xaml
     /// </summary>
-    public partial class Processed : UserControl
+    public partial class Processed : UserControl, IDropTarget
     {
         public static bool live = true;
 
