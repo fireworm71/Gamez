@@ -38,8 +38,8 @@ namespace GameTracking
             DataContext = this;
         }
 
-        private ObservableCollection<ListedGame> _games = new ObservableCollection<ListedGame>();
-        public ObservableCollection<ListedGame> Games
+        private ObservableCollection<GameToSell> _games = new ObservableCollection<GameToSell>();
+        public ObservableCollection<GameToSell> Games
         {
             get { return _games; }
         }
@@ -64,7 +64,7 @@ namespace GameTracking
 
             foreach (var entry in listFeed.Entries.OfType<ListEntry>())
             {
-                _games.Add(new ListedGame(entry));
+                _games.Add(new GameToSell(entry));
             }
             
             // Define the URL to request the list feed of the worksheet.
@@ -106,7 +106,7 @@ namespace GameTracking
             }
         }
 
-        private void PublishGame(ListedGame game)
+        private void PublishGame(GameToSell game)
         {
             var waitFor = Task.Run(() =>
             {
@@ -137,7 +137,7 @@ namespace GameTracking
 
         public new void Drop(IDropInfo dropInfo)
         {
-            var game = dropInfo.TargetItem as ListedGame;
+            var game = dropInfo.TargetItem as GameToSell;
             if (game != null)
             {
                 game.PicturePaths.Clear();
@@ -151,7 +151,7 @@ namespace GameTracking
         private void PublishSingle_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
-            var game = (ListedGame)button.DataContext;
+            var game = (GameToSell)button.DataContext;
             PublishGame(game);
         }
 

@@ -10,55 +10,22 @@ using System.Threading.Tasks;
 
 namespace GameTracking
 {
-    public enum Shipping
+    public enum ProcessedSheetColumns
     {
-        FirstClass,
-        SmallFlatRate,
-        MediumFlatRate,
-        LargeFlatRate,
-        PriorityByWeight,
-    }
-
-    public enum SheetColumns
-    {
-        Link,
+        Name,
         Condition,
-        PricePaid,
-        ShipAs,
-        Value,
-        Response,
         ID,
+        Link,
+        SoldFor,
+        Status,
     }
 
     public class ListedGame : INotifyPropertyChanged
     {
-        private Shipping _shipping = Shipping.FirstClass;
-        public Shipping Shipping
-        {
-            get { return _shipping; }
-            set
-            {
-                _shipping = value; 
-                OnPropertyChanged();
-                UpdateListEntry();
-            }
-        }
-
-        public IEnumerable<Shipping> ShippingMethods
-        {
-            get
-            {
-                return Enum.GetValues(typeof(Shipping))
-                    .Cast<Shipping>();
-            }
-        }
-
         private async void UpdateListEntry()
         {
             await Task.Run(() =>
             {
-                _listEntry.Elements[(int)SheetColumns.Value].Value = _price.ToString();
-                _listEntry.Elements[(int)SheetColumns.ShipAs].Value = _shipping.ToString();
                 try
                 {
                     _listEntry = (ListEntry)_listEntry.Update();
@@ -70,47 +37,7 @@ namespace GameTracking
             });
         }
 
-        public async Task<ListEntry> PublishToEbay(bool live)
-        {
-            CanPublish = false;
-            var ebay = new EbayAccess();
-            string ebayId = await Task.Run(() =>
-                {
-                    string response;
-                    string id; 
-                    bool succ = ebay.NewListing(live, Upc, Price, PicturePaths.ToArray(), "", Description, Shipping, out response, out id);
-
-                    UploadResponse(response, id);
-                    return id;
-                });
-            CanPublish = true;
-            EbayId = ebayId;
-            if (ebayId != "-1")
-            {
-                ListEntry newEntry = new ListEntry();
-                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "name", Value = Name });
-                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "condition", Value = Condition });
-                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "ebayitemid", Value = ebayId });
-
-                EbayAccess.ListingInfo info;
-                ebay.GetListingInfo(live, ebayId, out info);
-                if (info.ViewUrl != null)
-                {
-                    ViewUrl = info.ViewUrl;
-                    newEntry.Elements.Add(new ListEntry.Custom { LocalName = "viewlink", Value = info.ViewUrl });
-                }
-                else
-                {
-                    newEntry.Elements.Add(new ListEntry.Custom { LocalName = "viewlink", Value = "Error getting URL!" });
-                }
-                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "soldfor", Value = "" });
-                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "status", Value = "Listed!" });
-
-                return newEntry;
-            }
-            return null;
-        }
-
+        
         private string _viewUrl = null;
         public string ViewUrl
         {
@@ -138,13 +65,6 @@ namespace GameTracking
             get { return _publish; }
             set { _publish = value; OnPropertyChanged(); }
         }
-
-        private string _url;
-        public string Url
-        {
-            get { return _url; }
-            private set { _url = value; OnPropertyChanged(); }
-        }
         
         private string _condition;
         public string Condition
@@ -166,38 +86,7 @@ namespace GameTracking
             get { return _platform; }
             private set { _platform = value; OnPropertyChanged(); }
         }
-
-        private bool _hasInstructions;
-        public bool HasInstructions
-        {
-            get { return _hasInstructions; }
-            set
-            {
-                _hasInstructions = value; 
-                OnPropertyChanged();
-                Description = _details.GetDescription(HasCase, HasInstructions);
-            }
-        }
-
-        private bool _hasCase;
-        public bool HasCase
-        {
-            get { return _hasCase; }
-            set
-            {
-                _hasCase = value; 
-                OnPropertyChanged();
-                Description = _details.GetDescription(HasCase, HasInstructions);
-            }
-        }
-
-        private string _upc;
-        public string Upc
-        {
-            get { return _upc; }
-            private set { _upc = value; OnPropertyChanged(); }
-        }
-
+        
         private double _price;
         public double Price
         {
@@ -210,13 +99,6 @@ namespace GameTracking
         {
             get { return _description; }
             private set { _description = value; OnPropertyChanged(); }
-        }
-
-
-        private ObservableCollection<string> _picturePaths = new ObservableCollection<string>();
-        public ObservableCollection<string> PicturePaths
-        {
-            get { return _picturePaths; }
         }
 
         private ListEntry _listEntry;
@@ -232,35 +114,18 @@ namespace GameTracking
             set { _listingInfo = value; OnPropertyChanged(); }
         }
 
-        private GameDetailer _details;
-
         public ListedGame(ListEntry listEntry)
         {
             _listEntry = listEntry;
 
-            _url = listEntry.Elements[(int)SheetColumns.Link].Value;
-            _condition = listEntry.Elements[(int)SheetColumns.Condition].Value;
-            if (!Enum.TryParse<Shipping>(listEntry.Elements[(int)SheetColumns.ShipAs].Value, out _shipping))
-            {
-                Shipping = Shipping.FirstClass;
-            }
-            _details = new GameDetailer(_url, _condition);
+            _condition = listEntry.Elements[(int)ProcessedSheetColumns.Condition].Value;
             Initalize();
         }
 
         async void Initalize()
         {
-            await _details.FetchPage();
-
-            Name = _details.GetName();
-            Upc = _details.GetUPC();
-            Platform = _details.GetPlatform();
-            Price = Math.Round(_details.GetSellingPrice(1.1f)) - 0.05;
-            Description = _details.GetDescription(HasCase, HasInstructions);
-
-            _listEntry.Elements[(int)SheetColumns.Value].Value = Price.ToString();
-
-            string ebayId = _listEntry.Elements[(int)SheetColumns.ID].Value;
+            Name = _listEntry.Elements[(int)ProcessedSheetColumns.Name].Value;
+            string ebayId = _listEntry.Elements[(int)ProcessedSheetColumns.ID].Value;
 
             var ebay = new EbayAccess();
             EbayAccess.ListingInfo info;
@@ -289,8 +154,6 @@ namespace GameTracking
         {
             await Task.Run(() =>
             {
-                _listEntry.Elements[(int)SheetColumns.Response].Value = response;
-                _listEntry.Elements[(int)SheetColumns.ID].Value = id;
                 try
                 {
                     _listEntry = (ListEntry)_listEntry.Update();

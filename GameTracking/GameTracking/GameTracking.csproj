@@ -71,6 +71,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="GameToSell.cs" />
     <Compile Include="Processed.xaml.cs">
       <DependentUpon>Processed.xaml</DependentUpon>
     </Compile>

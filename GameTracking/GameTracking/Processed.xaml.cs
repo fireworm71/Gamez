@@ -45,7 +45,7 @@ namespace GameTracking
             set { SetValue(SheetsProperty, value); }
         }
         public static DependencyProperty SheetsProperty = DependencyProperty.Register("Sheets", typeof(SheetsAccess), typeof(Processed), null);
-        
+
         private ObservableCollection<ListedGame> _games = new ObservableCollection<ListedGame>();
         public ObservableCollection<ListedGame> Games
         {
@@ -55,7 +55,7 @@ namespace GameTracking
         private void Import_Click(object sender, RoutedEventArgs e)
         {
             // Define the URL to request the list feed of the worksheet.
-            AtomLink listFeedLink = Sheets.GetToProcessSheet().Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+            AtomLink listFeedLink = Sheets.GetProcessedSheet().Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
 
             // Fetch the list feed of the worksheet.
             ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
@@ -96,16 +96,9 @@ namespace GameTracking
         
         private void Publish_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var game in _games)
-            {
-                if (game.Publish)
-                {
-                    PublishGame(game);
-                }
-            }
         }
 
-        private void PublishGame(ListedGame game)
+        private void PublishGame(GameToSell game)
         {
             var waitFor = Task.Run(() =>
             {
@@ -136,7 +129,7 @@ namespace GameTracking
 
         public new void Drop(IDropInfo dropInfo)
         {
-            var game = dropInfo.TargetItem as ListedGame;
+            var game = dropInfo.TargetItem as GameToSell;
             if (game != null)
             {
                 game.PicturePaths.Clear();
@@ -150,7 +143,7 @@ namespace GameTracking
         private void PublishSingle_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
-            var game = (ListedGame)button.DataContext;
+            var game = (GameToSell)button.DataContext;
             PublishGame(game);
         }
 
