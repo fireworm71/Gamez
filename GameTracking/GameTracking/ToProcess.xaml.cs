@@ -108,11 +108,12 @@ namespace GameTracking
 
         private void PublishGame(GameToSell game)
         {
+            var sheets = Sheets;
             var waitFor = Task.Run(() =>
             {
-                AtomLink listFeedLink = Sheets.GetProcessedSheet().Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+                AtomLink listFeedLink = sheets.GetProcessedSheet().Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
                 ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
-                ListFeed listFeed = Sheets.GetSpreadsheetService().Query(listQuery);
+                ListFeed listFeed = sheets.GetSpreadsheetService().Query(listQuery);
 
                 ListEntry newEntry = game.PublishToEbay(live).Result;
 
@@ -120,7 +121,7 @@ namespace GameTracking
                 {
                     try
                     {
-                        Sheets.GetSpreadsheetService().Insert(listFeed, newEntry);
+                        sheets.GetSpreadsheetService().Insert(listFeed, newEntry);
                     }
                     catch (Exception ex)
                     {
