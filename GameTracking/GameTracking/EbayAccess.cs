@@ -75,108 +75,209 @@ namespace GameTracking
         public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, Shipping shipping, out string response, out string id)
         {
             ApiContext apiContext = GetApiContext(live);
+            bool useTitleOverride = false;
 
-            var addItem = new AddFixedPriceItemCall(apiContext);
-            addItem.Item = new ItemType();
-
-            addItem.PictureFileList = new StringCollection();
-            addItem.PictureFileList.AddRange(picFiles);
-            addItem.Item.PictureDetails = new PictureDetailsType();
-            addItem.Item.PictureDetails.GalleryType = GalleryTypeCodeType.Gallery;
-            addItem.Item.BestOfferDetails = new BestOfferDetailsType
             {
-                BestOfferEnabled = true
-            };
+                var addItem = new VerifyAddFixedPriceItemCall(apiContext);
+                addItem.Item = new ItemType();
 
-            addItem.Item.IncludeRecommendations = true;
-
-            addItem.Item.Title = titleOverride;
-            addItem.Item.Description = description;
-            addItem.Item.PrimaryCategory = new CategoryType() { CategoryID = "139973" };
-            addItem.Item.ConditionID = 4000;
-            addItem.Item.ProductListingDetails = new ProductListingDetailsType
-            {
-                UPC = upc
-            };
-            addItem.Item.StartPrice = new AmountType() { currencyID = CurrencyCodeType.USD, Value = price };
-            addItem.Item.Currency = CurrencyCodeType.USD;
-            addItem.Item.Country = CountryCodeType.US;
-            addItem.Item.DispatchTimeMax = 1;
-            addItem.Item.ListingDuration = "Days_30";
-            addItem.Item.ListingType = ListingTypeCodeType.FixedPriceItem;
-            addItem.Item.PaymentMethods = new BuyerPaymentMethodCodeTypeCollection { BuyerPaymentMethodCodeType.PayPal };
-            addItem.Item.PayPalEmailAddress = paypalEmail;
-            addItem.Item.PostalCode = locationZip.ToString();
-            addItem.Item.Quantity = 1;
-            addItem.Item.ReturnPolicy = new ReturnPolicyType()
-            {
-                ReturnsAcceptedOption = "ReturnsAccepted",
-                RefundOption = "MoneyBack",
-                ReturnsWithinOption = "Days_14",
-                ShippingCostPaidByOption = "Buyer"
-            };
-
-            string shippingMethod = "";
-            decimal lbs = 0;
-            decimal oz = 0;
-            switch (shipping)
-            {
-                case Shipping.FirstClass:
-                    shippingMethod = "USPSFirstClass";
-                    oz = 5;
-                    break;
-                case Shipping.SmallFlatRate:
-                    shippingMethod = "USPSPriorityMailSmallFlatRateBox";
-                    lbs = 5;
-                    break;
-                case Shipping.MediumFlatRate:
-                    shippingMethod = "USPSPriorityMailFlatRateBox";
-                    lbs = 10;
-                    break;
-                case Shipping.LargeFlatRate:
-                    shippingMethod = "USPSPriorityMailLargeFlatRateBox";
-                    lbs = 15;
-                    break;
-                case Shipping.PriorityByWeight:
-                    shippingMethod = "USPSPriorityMail";
-                    lbs = 2;
-                    break;
-                default:
-                    break;
-            }
-
-            addItem.Item.ShippingDetails = new ShippingDetailsType
-            {
-                ShippingType = ShippingTypeCodeType.Calculated,
-                CalculatedShippingRate = new CalculatedShippingRateType
+                addItem.PictureFileList = new StringCollection();
+                addItem.PictureFileList.AddRange(picFiles);
+                addItem.Item.PictureDetails = new PictureDetailsType();
+                addItem.Item.PictureDetails.GalleryType = GalleryTypeCodeType.Gallery;
+                addItem.Item.BestOfferDetails = new BestOfferDetailsType
                 {
-                    OriginatingPostalCode = locationZip.ToString(),
-                    PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
-                    ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
-                    WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = lbs },
-                    WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = oz }
-                },
-                ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
+                    BestOfferEnabled = true
+                };
+
+                addItem.Item.IncludeRecommendations = true;
+
+                addItem.Item.Title = titleOverride;
+                addItem.Item.Description = description;
+                addItem.Item.PrimaryCategory = new CategoryType() { CategoryID = "139973" };
+                addItem.Item.ConditionID = 4000;
+                addItem.Item.ProductListingDetails = new ProductListingDetailsType
+                {
+                    UPC = upc
+                };
+                addItem.Item.StartPrice = new AmountType() { currencyID = CurrencyCodeType.USD, Value = price };
+                addItem.Item.Currency = CurrencyCodeType.USD;
+                addItem.Item.Country = CountryCodeType.US;
+                addItem.Item.DispatchTimeMax = 1;
+                addItem.Item.ListingDuration = "Days_30";
+                addItem.Item.ListingType = ListingTypeCodeType.FixedPriceItem;
+                addItem.Item.PaymentMethods = new BuyerPaymentMethodCodeTypeCollection { BuyerPaymentMethodCodeType.PayPal };
+                addItem.Item.PayPalEmailAddress = paypalEmail;
+                addItem.Item.PostalCode = locationZip.ToString();
+                addItem.Item.Quantity = 1;
+                addItem.Item.ReturnPolicy = new ReturnPolicyType()
+                {
+                    ReturnsAcceptedOption = "ReturnsAccepted",
+                    RefundOption = "MoneyBack",
+                    ReturnsWithinOption = "Days_14",
+                    ShippingCostPaidByOption = "Buyer"
+                };
+
+                string shippingMethod = "";
+                decimal lbs = 0;
+                decimal oz = 0;
+                switch (shipping)
+                {
+                    case Shipping.FirstClass:
+                        shippingMethod = "USPSFirstClass";
+                        oz = 5;
+                        break;
+                    case Shipping.SmallFlatRate:
+                        shippingMethod = "USPSPriorityMailSmallFlatRateBox";
+                        lbs = 5;
+                        break;
+                    case Shipping.MediumFlatRate:
+                        shippingMethod = "USPSPriorityMailFlatRateBox";
+                        lbs = 10;
+                        break;
+                    case Shipping.LargeFlatRate:
+                        shippingMethod = "USPSPriorityMailLargeFlatRateBox";
+                        lbs = 15;
+                        break;
+                    case Shipping.PriorityByWeight:
+                        shippingMethod = "USPSPriorityMail";
+                        lbs = 2;
+                        break;
+                    default:
+                        break;
+                }
+
+                addItem.Item.ShippingDetails = new ShippingDetailsType
+                {
+                    ShippingType = ShippingTypeCodeType.Calculated,
+                    CalculatedShippingRate = new CalculatedShippingRateType
+                    {
+                        OriginatingPostalCode = locationZip.ToString(),
+                        PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
+                        ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
+                        WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = lbs },
+                        WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = oz }
+                    },
+                    ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
                     new ShippingServiceOptionsType{
                         ShippingService = shippingMethod,
                         ShippingServicePriority = 1,
                     }
                 }
-            };
+                };
 
-            try
-            {
-                addItem.Execute();
+                try
+                {
+                    addItem.Execute();
+                }
+                catch (Exception ex)
+                {
+                    useTitleOverride = true;
+                }
             }
-            catch (Exception ex)
             {
-                id = "-1";
-                response = ex.ToString();
-                return false;
+                var addItem = new AddFixedPriceItemCall(apiContext);
+                addItem.Item = new ItemType();
+
+                addItem.PictureFileList = new StringCollection();
+                addItem.PictureFileList.AddRange(picFiles);
+                addItem.Item.PictureDetails = new PictureDetailsType();
+                addItem.Item.PictureDetails.GalleryType = GalleryTypeCodeType.Gallery;
+                addItem.Item.BestOfferDetails = new BestOfferDetailsType
+                {
+                    BestOfferEnabled = true
+                };
+
+                addItem.Item.IncludeRecommendations = true;
+
+                addItem.Item.Title = useTitleOverride ? titleOverride : "";
+                addItem.Item.Description = description;
+                addItem.Item.PrimaryCategory = new CategoryType() { CategoryID = "139973" };
+                addItem.Item.ConditionID = 4000;
+                addItem.Item.ProductListingDetails = new ProductListingDetailsType
+                {
+                    UPC = upc
+                };
+                addItem.Item.StartPrice = new AmountType() { currencyID = CurrencyCodeType.USD, Value = price };
+                addItem.Item.Currency = CurrencyCodeType.USD;
+                addItem.Item.Country = CountryCodeType.US;
+                addItem.Item.DispatchTimeMax = 1;
+                addItem.Item.ListingDuration = "Days_30";
+                addItem.Item.ListingType = ListingTypeCodeType.FixedPriceItem;
+                addItem.Item.PaymentMethods = new BuyerPaymentMethodCodeTypeCollection { BuyerPaymentMethodCodeType.PayPal };
+                addItem.Item.PayPalEmailAddress = paypalEmail;
+                addItem.Item.PostalCode = locationZip.ToString();
+                addItem.Item.Quantity = 1;
+                addItem.Item.ReturnPolicy = new ReturnPolicyType()
+                {
+                    ReturnsAcceptedOption = "ReturnsAccepted",
+                    RefundOption = "MoneyBack",
+                    ReturnsWithinOption = "Days_14",
+                    ShippingCostPaidByOption = "Buyer"
+                };
+
+                string shippingMethod = "";
+                decimal lbs = 0;
+                decimal oz = 0;
+                switch (shipping)
+                {
+                    case Shipping.FirstClass:
+                        shippingMethod = "USPSFirstClass";
+                        oz = 5;
+                        break;
+                    case Shipping.SmallFlatRate:
+                        shippingMethod = "USPSPriorityMailSmallFlatRateBox";
+                        lbs = 5;
+                        break;
+                    case Shipping.MediumFlatRate:
+                        shippingMethod = "USPSPriorityMailFlatRateBox";
+                        lbs = 10;
+                        break;
+                    case Shipping.LargeFlatRate:
+                        shippingMethod = "USPSPriorityMailLargeFlatRateBox";
+                        lbs = 15;
+                        break;
+                    case Shipping.PriorityByWeight:
+                        shippingMethod = "USPSPriorityMail";
+                        lbs = 2;
+                        break;
+                    default:
+                        break;
+                }
+
+                addItem.Item.ShippingDetails = new ShippingDetailsType
+                {
+                    ShippingType = ShippingTypeCodeType.Calculated,
+                    CalculatedShippingRate = new CalculatedShippingRateType
+                    {
+                        OriginatingPostalCode = locationZip.ToString(),
+                        PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
+                        ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
+                        WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = lbs },
+                        WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = oz }
+                    },
+                    ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
+                    new ShippingServiceOptionsType{
+                        ShippingService = shippingMethod,
+                        ShippingServicePriority = 1,
+                    }
+                }
+                };
+
+                try
+                {
+                    addItem.Execute();
+                }
+                catch (Exception ex)
+                {
+                    id = "-1";
+                    response = ex.ToString();
+                    return false;
+                }
+                response = "OK!";
+                id = addItem.ApiResponse.ItemID;
             }
 
-            response = "OK!";
-            id = addItem.ApiResponse.ItemID;
             return true;
         }
 

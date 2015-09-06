@@ -35,6 +35,23 @@ namespace GameTracking
             return double.Parse(priceString);
         }
 
+        public int GetReleaseYear()
+        {
+            int startIndex = _page.IndexOf("\"date\">") + "\"date\">".Length;
+            string toRefine = _page.Substring(startIndex, 200);
+            int stopIndex = toRefine.IndexOf('<');
+            string priceString = toRefine.Substring(0, stopIndex);
+            try
+            {
+                var date = DateTime.Parse(priceString);
+                return date.Year;
+            }
+            catch (Exception e)
+            {
+                return 0;
+            }
+        }
+
         public double GetSellingPrice(double markup)
         {
             double used = GetPrice("used_price");

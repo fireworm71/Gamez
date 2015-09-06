@@ -78,7 +78,17 @@ namespace GameTracking
             {
                 string response;
                 string id;
-                bool succ = ebay.NewListing(live, Upc, Price, PicturePaths.ToArray(), "", Description, Shipping, out response, out id);
+                string titleOverride = string.Format("{0} ({1}", Name, Platform);
+                int releaseYear = _details.GetReleaseYear();
+                if (_details.GetReleaseYear() > 1)
+                {
+                    titleOverride += string.Format(", {0})", releaseYear);
+                }
+                else
+                {
+                    titleOverride += ")";
+                }
+                bool succ = ebay.NewListing(live, Upc, Price, PicturePaths.ToArray(), titleOverride, Description, Shipping, out response, out id);
 
                 UploadResponse(response, id);
                 return id;
@@ -251,6 +261,7 @@ namespace GameTracking
         async void Initalize()
         {
             await _details.FetchPage();
+            _details.GetReleaseYear();
 
             Name = _details.GetName();
             Upc = _details.GetUPC();
