@@ -71,6 +71,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Database.xaml.cs">
+      <DependentUpon>Database.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="GameDatabaseEntry.cs" />
     <Compile Include="GameToSell.cs" />
     <Compile Include="Processed.xaml.cs">
       <DependentUpon>Processed.xaml</DependentUpon>
@@ -80,6 +84,10 @@
       <DependentUpon>ToProcess.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Database.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

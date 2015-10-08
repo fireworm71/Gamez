@@ -17,6 +17,11 @@
                     <local:Processed Sheets="{Binding Sheets, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
                 </TabItem.Content>
             </TabItem>
+            <TabItem Header="Database">
+                <TabItem.Content>
+                    <local:Database Sheets="{Binding Sheets, RelativeSource={RelativeSource AncestorType=local:MainWindow}}"/>
+                </TabItem.Content>
+            </TabItem>
         </TabControl.Items>
     </TabControl>
 </Window>

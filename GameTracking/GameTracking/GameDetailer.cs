@@ -20,6 +20,11 @@ namespace GameTracking
 
         public async Task FetchPage()
         {
+            if (string.IsNullOrEmpty(_url))
+            {
+                _page = "";
+                return;
+            }
             var priceClient = new WebClient();
             priceClient.BaseAddress = _url;
             _page = await priceClient.DownloadStringTaskAsync("");
@@ -30,6 +35,10 @@ namespace GameTracking
             int startIndex = _page.IndexOf(string.Format("id=\"{0}\"", priceType));
             string toRefine = _page.Substring(startIndex, 200);
             int dollarIndex = toRefine.IndexOf('$');
+            if (dollarIndex < 0)
+            {
+                return 0.0;
+            }
             int dotIndex = toRefine.IndexOf('.', dollarIndex);
             string priceString = toRefine.Substring(dollarIndex + 1, (dotIndex - (dollarIndex)) + 2);
             return double.Parse(priceString);
@@ -110,12 +119,20 @@ namespace GameTracking
             name_start = _page.IndexOf("(", name_start);
 			string name_block = _page.Substring(name_start, 100);
 			int name_end = name_block.IndexOf(") |");
+            if (name_end < 0)
+            {
+                return "???";
+            }
             return name_block.Substring(1, name_end - 1).Trim();
         }
 
         public string GetUPC()
         {
             int startIndex = _page.IndexOf("UPC:");
+            if (startIndex < 0)
+            {
+                return "???";
+            }
             string toRefine = _page.Substring(startIndex, 200);
             int dollarIndex = toRefine.IndexOf('>');
             int dotIndex = toRefine.IndexOf('<', dollarIndex);
