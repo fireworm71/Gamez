@@ -293,9 +293,9 @@ namespace GameTracking
         public class ListingInfo
         {
             public string ViewUrl { get; set; }
-            public decimal ListPrice { get; set; }
+            public double ListPrice { get; set; }
             public EbayStatus CurrentStatus { get; set; }
-            public decimal SoldPrice { get; set; }
+            public double SoldPrice { get; set; }
         }
 
         public void GetListingInfo(bool live, string id, out ListingInfo info)
@@ -326,7 +326,15 @@ namespace GameTracking
                     info.CurrentStatus = EbayStatus.Unsold;
                     break;
                 case ListingStatusCodeType.Completed:
-                    info.CurrentStatus = EbayStatus.Sold;
+                    if (getItem.ApiResponse.Item.SellingStatus.QuantitySold > 0)
+                    {
+                        info.CurrentStatus = EbayStatus.Sold;
+                        info.SoldPrice = getItem.ApiResponse.Item.SellingStatus.CurrentPrice.Value;
+                    }
+                    else
+                    {
+                        info.CurrentStatus = EbayStatus.Unsold;
+                    }
                     break;
             }
         }

@@ -134,6 +134,12 @@ namespace GameTracking
                 ebay.GetListingInfo(ToProcess.live, ebayId, out info);
                 ViewUrl = info.ViewUrl;
                 ListingInfo = info;
+
+                _listEntry.Elements[(int)ProcessedSheetColumns.Status].Value = info.CurrentStatus.ToString();
+                if (info.CurrentStatus == EbayAccess.EbayStatus.Sold)
+                {
+                    _listEntry.Elements[(int)ProcessedSheetColumns.SoldFor].Value = info.SoldPrice.ToString();
+                }
             });
 
 
