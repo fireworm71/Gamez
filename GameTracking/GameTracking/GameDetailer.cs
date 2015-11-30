@@ -141,7 +141,7 @@ namespace GameTracking
             return upcString;
         }
 
-        public string GetDescription(bool hasCase, bool hasInstructions)
+        public string GetCompletionText()
         {
             string completeText = "";
             switch (_condition)
@@ -162,7 +162,12 @@ namespace GameTracking
                     completeText = "game only";
                     break;
             }
+            return completeText;
+        }
 
+        public string GetDescription(bool hasCase, bool hasInstructions)
+        {
+            string completeText = GetCompletionText();
             string title = GetName();
             string platform = GetPlatform();
 

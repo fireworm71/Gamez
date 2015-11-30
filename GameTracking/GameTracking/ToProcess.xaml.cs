@@ -38,10 +38,10 @@ namespace GameTracking
             DataContext = this;
         }
 
-        private ObservableCollection<GameToSell> _games = new ObservableCollection<GameToSell>();
-        public ObservableCollection<GameToSell> Games
+        private ObservableCollection<object> _sellables = new ObservableCollection<object>();
+        public ObservableCollection<object> Sellables
         {
-            get { return _games; }
+            get { return _sellables; }
         }
         
         public SheetsAccess Sheets
@@ -62,9 +62,24 @@ namespace GameTracking
             ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
             ListFeed listFeed = Sheets.GetSpreadsheetService().Query(listQuery);
 
+            _sellables.Clear();
             foreach (var entry in listFeed.Entries.OfType<ListEntry>())
             {
-                _games.Add(new GameToSell(entry));
+                if (entry.Elements[(int)ToProcessSheetColumns.BundleID].Value != "")
+                {
+                    int bundleId = int.Parse(entry.Elements[(int)ToProcessSheetColumns.BundleID].Value);
+                    var bundle = _sellables.OfType<BundleToSell>().FirstOrDefault(x => x.BundleId == bundleId);
+                    if (bundle == null)
+                    {
+                        bundle = new BundleToSell { BundleId = bundleId };
+                        _sellables.Add(bundle);
+                    }
+                    bundle.Games.Add(new GameToSell(entry));
+                }
+                else
+                {
+                    _sellables.Add(new GameToSell(entry));
+                }
             }
             
             // Define the URL to request the list feed of the worksheet.
@@ -94,19 +109,8 @@ namespace GameTracking
                 }
             }
         }
-        
-        private void Publish_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var game in _games)
-            {
-                if (game.Publish)
-                {
-                    PublishGame(game);
-                }
-            }
-        }
 
-        private void PublishGame(GameToSell game)
+        private void PublishGame(object game)
         {
             var sheets = Sheets;
             var waitFor = Task.Run(() =>
@@ -115,16 +119,27 @@ namespace GameTracking
                 ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
                 ListFeed listFeed = sheets.GetSpreadsheetService().Query(listQuery);
 
-                ListEntry newEntry = game.PublishToEbay(live).Result;
-
-                if (newEntry != null)
+                IEnumerable<ListEntry> newEntries = null;
+                if (game is GameToSell)
                 {
-                    try
+                    newEntries = new[] { ((GameToSell)game).PublishToEbay(live).Result };
+                }
+                else if (game is BundleToSell)
+                {
+                    newEntries = ((BundleToSell)game).PublishToEbay(live).Result;
+                }
+
+                if (newEntries != null)
+                {
+                    foreach (var newEntry in newEntries)
                     {
-                        sheets.GetSpreadsheetService().Insert(listFeed, newEntry);
-                    }
-                    catch (Exception ex)
-                    {
+                        try
+                        {
+                            sheets.GetSpreadsheetService().Insert(listFeed, newEntry);
+                        }
+                        catch (Exception ex)
+                        {
+                        }
                     }
                 }
             });
@@ -138,7 +153,7 @@ namespace GameTracking
 
         public new void Drop(IDropInfo dropInfo)
         {
-            var game = dropInfo.TargetItem as GameToSell;
+            var game = dropInfo.TargetItem as ToSell;
             if (game != null)
             {
                 game.PicturePaths.Clear();
@@ -152,8 +167,7 @@ namespace GameTracking
         private void PublishSingle_Click(object sender, RoutedEventArgs e)
         {
             var button = (Button)sender;
-            var game = (GameToSell)button.DataContext;
-            PublishGame(game);
+            PublishGame(button.DataContext);
         }
 
         private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

@@ -31,7 +31,6 @@ namespace GameTracking
 
             DataContext = this;
         }
-        public static bool live = true;
 
         public SheetsAccess Sheets
         {
@@ -74,7 +73,7 @@ namespace GameTracking
                 if (string.IsNullOrEmpty(entry.Elements[3].Value))
                 {
                     EbayAccess.ListingInfo info;
-                    ebay.GetListingInfo(live, entry.Elements[2].Value, out info);
+                    ebay.GetListingInfo(ToProcess.live, entry.Elements[2].Value, out info);
                     if (info.ViewUrl != null)
                     {
                         entry.Elements[3].Value = info.ViewUrl;
@@ -100,7 +99,7 @@ namespace GameTracking
                 ListQuery listQuery = new ListQuery(listFeedLink.HRef.ToString());
                 ListFeed listFeed = Sheets.GetSpreadsheetService().Query(listQuery);
 
-                ListEntry newEntry = game.PublishToEbay(live).Result;
+                ListEntry newEntry = game.PublishToEbay(ToProcess.live).Result;
 
                 if (newEntry != null)
                 {

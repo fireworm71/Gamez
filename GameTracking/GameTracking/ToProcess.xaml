@@ -4,6 +4,224 @@
         xmlns:local="clr-namespace:GameTracking"
 		xmlns:gong="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop">
     <Grid>
+        
+        <Grid.Resources>
+            
+            <DataTemplate DataType="{x:Type local:BundleToSell}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="publish" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="platform" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="name" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="price" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="condition" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="shipping" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="pics" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" VerticalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                                        <Hyperlink NavigateUri="{Binding ViewUrl}" RequestNavigate="Hyperlink_RequestNavigate">
+                                            Link
+                                        </Hyperlink>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Padding" Value="5,0" />
+                                    <Setter Property="Text" Value="{Binding ListingInfo.CurrentStatus}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ListingInfo}" Value="{x:Null}">
+                                            <Setter Property="Text" Value=""/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Button Grid.Row="0" Grid.Column="1" Click="PublishSingle_Click" HorizontalAlignment="Center" IsEnabled="{Binding CanPublish}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Publish"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CanPublish}" Value="False">
+                                                <Setter Property="Text" Value="Publishing..."/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock Grid.Column="1" Text="{Binding Platform}"  VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBox Text="{Binding Title}" Width="250"/>
+                        <TextBox Text="{Binding Extras}" Width="250"/>
+                        <TextBlock Text="{Binding Name}" Width="250"/>
+                        <StackPanel.ToolTip>
+                            <TextBlock Text="{Binding Description}" />
+                        </StackPanel.ToolTip>
+                    </StackPanel>
+                    <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                        <TextBox Text="{Binding Price}" Width="50" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding PriceBreakdown}" Width="50" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="4" Text="{Binding Condition}" Width="100" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Column="5" VerticalAlignment="Center">
+                        <ComboBox ItemsSource="{Binding ShippingMethods}" SelectedValue="{Binding Shipping}" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox Text="{Binding ShippingLbs}" />
+                            <TextBox Text="{Binding ShippingOz}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <ItemsControl Grid.Column="6" ItemsSource="{Binding PicturePaths}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding}" MaxHeight="64"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Width="576" Height="64" Rows="1" Columns="12"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </DataTemplate>
+            
+            <DataTemplate DataType="{x:Type local:GameToSell}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="publish" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="platform" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="name" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="price" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="condition" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="shipping" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="pics" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0" VerticalAlignment="Center">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                                        <Hyperlink NavigateUri="{Binding ViewUrl}" RequestNavigate="Hyperlink_RequestNavigate">
+                                            Link
+                                        </Hyperlink>
+                        </TextBlock>
+                        <TextBlock Grid.Column="1">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Padding" Value="5,0" />
+                                    <Setter Property="Text" Value="{Binding ListingInfo.CurrentStatus}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ListingInfo}" Value="{x:Null}">
+                                            <Setter Property="Text" Value=""/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Button Grid.Row="0" Grid.Column="1" Click="PublishSingle_Click" HorizontalAlignment="Center" IsEnabled="{Binding CanPublish}">
+                            <Button.Style>
+                                <Style TargetType="Button">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                            <TextBlock>
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Publish"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CanPublish}" Value="False">
+                                                <Setter Property="Text" Value="Publishing..."/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </Button>
+                    </Grid>
+
+
+                    <TextBlock Grid.Column="1" Text="{Binding Platform}"  VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="2" Text="{Binding Name}" Width="250" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="3" Text="{Binding Price}" Width="50" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="4" Text="{Binding Condition}" Width="100" VerticalAlignment="Center"/>
+                    <ComboBox  Grid.Column="5" ItemsSource="{Binding ShippingMethods}" SelectedValue="{Binding Shipping}" VerticalAlignment="Center"/>
+                    
+                    <ItemsControl Grid.Column="6" ItemsSource="{Binding PicturePaths}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding}" MaxHeight="64"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Width="576" Height="64" Rows="1" Columns="12"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+                </Grid>
+            </DataTemplate>
+        </Grid.Resources>
+        
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -12,125 +230,18 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <ListView ItemsSource="{Binding Games}"
-                  gong:DragDrop.IsDropTarget="True"
-                  gong:DragDrop.DropHandler="{Binding}"
-                  Grid.ColumnSpan="2">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="" Width="30">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate DataType="{x:Type local:GameToSell}">
-                                <CheckBox IsChecked="{Binding Publish}" />
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Publish" Width="120">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                        <Hyperlink NavigateUri="{Binding ViewUrl}" RequestNavigate="Hyperlink_RequestNavigate">
-                                            Link
-                                        </Hyperlink>
-                                    </TextBlock>
-                                    <TextBlock Grid.Column="1">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Padding" Value="5,0" />
-                                                <Setter Property="Text" Value="{Binding ListingInfo.CurrentStatus}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ListingInfo}" Value="{x:Null}">
-                                                        <Setter Property="Text" Value=""/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                    <Button Grid.Row="0" Grid.Column="1" Click="PublishSingle_Click" HorizontalAlignment="Center" IsEnabled="{Binding CanPublish}">
-                                        <Button.Style>
-                                            <Style TargetType="Button">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
-                                                        <Setter Property="Visibility" Value="Visible"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        <TextBlock>
-                                            <TextBlock.Style>
-                                                <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="Publish"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding CanPublish}" Value="False">
-                                                            <Setter Property="Text" Value="Publishing..."/>
-                                                        </DataTrigger>
-                                                        <DataTrigger Binding="{Binding ViewUrl}" Value="{x:Null}">
-                                                            <Setter Property="Visibility" Value="Visible"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </TextBlock.Style>
-                                        </TextBlock>
-                                    </Button>
-                                </Grid>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="Platform" DisplayMemberBinding="{Binding Platform}" />
-                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="250"/>
-                    <GridViewColumn Header="Price" DisplayMemberBinding="{Binding Price}" Width="50"/>
-                    <GridViewColumn Header="Condition" DisplayMemberBinding="{Binding Condition}" Width="100"/>
-                    <GridViewColumn Header="Shipping" Width="100">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <ComboBox ItemsSource="{Binding ShippingMethods}" SelectedValue="{Binding Shipping}" />
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-
-                    <GridViewColumn Header="Images">
-                        <GridViewColumn.CellTemplate>
-                            <DataTemplate>
-                                <ItemsControl ItemsSource="{Binding PicturePaths}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Image Source="{Binding}" MaxHeight="64"/>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <UniformGrid Width="576" Height="64" Rows="1" Columns="12"/>
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                </ItemsControl>
-                            </DataTemplate>
-                        </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-                    <GridViewColumn Header="UPC" DisplayMemberBinding="{Binding Upc}" />
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <ScrollViewer Grid.ColumnSpan="2">
+            <ItemsControl ItemsSource="{Binding Sellables}"
+                      gong:DragDrop.IsDropTarget="True"
+                      gong:DragDrop.DropHandler="{Binding}"
+                      Grid.IsSharedSizeScope="True">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </ScrollViewer>
         <Button Grid.Row="1" Grid.Column="0" Click="Import_Click">Import!</Button>
-        <Button Grid.Row="1" Grid.Column="1" Click="Publish_Click">Publish!</Button>
     </Grid>
 </UserControl>

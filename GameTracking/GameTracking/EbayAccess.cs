@@ -72,98 +72,137 @@ namespace GameTracking
             }
         }
 
-        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, Shipping shipping, out string response, out string id)
+        public enum EbayCategory
         {
-            ApiContext apiContext = GetApiContext(live);
-            bool useTitleOverride = false;
+            Game,
+            Console,
+        }
 
+        private ItemType CreateItem(string upc, double price, string titleOverride, string description, Shipping shipping, EbayCategory ebayCategory, bool forceTitleOverride, int lbs, int oz) 
+        {
+            var item = new ItemType();
+
+            item.PictureDetails = new PictureDetailsType();
+            item.PictureDetails.GalleryType = GalleryTypeCodeType.Gallery;
+            item.BestOfferDetails = new BestOfferDetailsType
             {
-                var addItem = new VerifyAddFixedPriceItemCall(apiContext);
-                addItem.Item = new ItemType();
+                BestOfferEnabled = true
+            };
 
-                addItem.PictureFileList = new StringCollection();
-                addItem.PictureFileList.AddRange(picFiles);
-                addItem.Item.PictureDetails = new PictureDetailsType();
-                addItem.Item.PictureDetails.GalleryType = GalleryTypeCodeType.Gallery;
-                addItem.Item.BestOfferDetails = new BestOfferDetailsType
-                {
-                    BestOfferEnabled = true
-                };
+            item.IncludeRecommendations = true;
 
-                addItem.Item.IncludeRecommendations = true;
+            item.Title = forceTitleOverride ? titleOverride : ""; ;
+            item.Description = description;
+            switch (ebayCategory)
+            {
+                case EbayCategory.Console:
+                    item.PrimaryCategory = new CategoryType() { CategoryID = "48752" };
+                    item.ConditionID = 3000;
+                    break;
+                case EbayCategory.Game:
+                    item.PrimaryCategory = new CategoryType() { CategoryID = "139973" };
+                    item.ConditionID = 4000;
+                    break;
+            }
+            item.ProductListingDetails = new ProductListingDetailsType
+            {
+                UPC = upc
+            };
+            item.StartPrice = new AmountType() { currencyID = CurrencyCodeType.USD, Value = price };
+            item.Currency = CurrencyCodeType.USD;
+            item.Country = CountryCodeType.US;
+            item.DispatchTimeMax = 1;
+            item.ListingDuration = "Days_30";
+            item.ListingType = ListingTypeCodeType.FixedPriceItem;
+            item.PaymentMethods = new BuyerPaymentMethodCodeTypeCollection { BuyerPaymentMethodCodeType.PayPal };
+            item.PayPalEmailAddress = paypalEmail;
+            item.PostalCode = locationZip.ToString();
+            item.Quantity = 1;
+            item.ReturnPolicy = new ReturnPolicyType()
+            {
+                ReturnsAcceptedOption = "ReturnsAccepted",
+                RefundOption = "MoneyBack",
+                ReturnsWithinOption = "Days_14",
+                ShippingCostPaidByOption = "Buyer"
+            };
 
-                addItem.Item.Title = titleOverride;
-                addItem.Item.Description = description;
-                addItem.Item.PrimaryCategory = new CategoryType() { CategoryID = "139973" };
-                addItem.Item.ConditionID = 4000;
-                addItem.Item.ProductListingDetails = new ProductListingDetailsType
-                {
-                    UPC = upc
-                };
-                addItem.Item.StartPrice = new AmountType() { currencyID = CurrencyCodeType.USD, Value = price };
-                addItem.Item.Currency = CurrencyCodeType.USD;
-                addItem.Item.Country = CountryCodeType.US;
-                addItem.Item.DispatchTimeMax = 1;
-                addItem.Item.ListingDuration = "Days_30";
-                addItem.Item.ListingType = ListingTypeCodeType.FixedPriceItem;
-                addItem.Item.PaymentMethods = new BuyerPaymentMethodCodeTypeCollection { BuyerPaymentMethodCodeType.PayPal };
-                addItem.Item.PayPalEmailAddress = paypalEmail;
-                addItem.Item.PostalCode = locationZip.ToString();
-                addItem.Item.Quantity = 1;
-                addItem.Item.ReturnPolicy = new ReturnPolicyType()
-                {
-                    ReturnsAcceptedOption = "ReturnsAccepted",
-                    RefundOption = "MoneyBack",
-                    ReturnsWithinOption = "Days_14",
-                    ShippingCostPaidByOption = "Buyer"
-                };
-
-                string shippingMethod = "";
-                decimal lbs = 0;
-                decimal oz = 0;
-                switch (shipping)
-                {
-                    case Shipping.FirstClass:
-                        shippingMethod = "USPSFirstClass";
-                        oz = 5;
-                        break;
-                    case Shipping.SmallFlatRate:
-                        shippingMethod = "USPSPriorityMailSmallFlatRateBox";
-                        lbs = 5;
-                        break;
-                    case Shipping.MediumFlatRate:
-                        shippingMethod = "USPSPriorityMailFlatRateBox";
-                        lbs = 10;
-                        break;
-                    case Shipping.LargeFlatRate:
-                        shippingMethod = "USPSPriorityMailLargeFlatRateBox";
-                        lbs = 15;
-                        break;
-                    case Shipping.PriorityByWeight:
-                        shippingMethod = "USPSPriorityMail";
-                        lbs = 2;
-                        break;
-                    default:
-                        break;
-                }
-
-                addItem.Item.ShippingDetails = new ShippingDetailsType
-                {
-                    ShippingType = ShippingTypeCodeType.Calculated,
-                    CalculatedShippingRate = new CalculatedShippingRateType
+            string shippingMethod = "";
+            decimal shippingLbs = 0;
+            decimal shippingOz = 0;
+            switch (shipping)
+            {
+                case Shipping.FirstClass:
+                    shippingMethod = "USPSFirstClass";
+                    if (oz == 0)
                     {
-                        OriginatingPostalCode = locationZip.ToString(),
-                        PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
-                        ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
-                        WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = lbs },
-                        WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = oz }
-                    },
-                    ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
+                        shippingOz = 5;
+                    }
+                    else
+                    {
+                        shippingOz = (decimal)oz;
+                    }
+                    break;
+                case Shipping.PriorityByWeight:
+                    shippingMethod = "USPSPriority";
+                    if (lbs == 0)
+                    {
+                        shippingLbs = 2;
+                    }
+                    else
+                    {
+                        shippingLbs = (decimal)lbs;
+                        shippingOz = (decimal)oz;
+                    }
+                    break;
+                case Shipping.SmallFlatRate:
+                    shippingMethod = "USPSPriorityMailSmallFlatRateBox";
+                    shippingLbs = 5;
+                    break;
+                case Shipping.MediumFlatRate:
+                    shippingMethod = "USPSPriorityMailFlatRateBox";
+                    shippingLbs = 10;
+                    break;
+                case Shipping.LargeFlatRate:
+                    shippingMethod = "USPSPriorityMailLargeFlatRateBox";
+                    shippingLbs = 15;
+                    break;
+                default:
+                    break;
+            }
+
+            item.ShippingDetails = new ShippingDetailsType
+            {
+                ShippingType = ShippingTypeCodeType.Calculated,
+                CalculatedShippingRate = new CalculatedShippingRateType
+                {
+                    OriginatingPostalCode = locationZip.ToString(),
+                    PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
+                    ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
+                    WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = shippingLbs },
+                    WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = shippingOz }
+                },
+                ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
                     new ShippingServiceOptionsType{
                         ShippingService = shippingMethod,
                         ShippingServicePriority = 1,
                     }
                 }
+            };
+
+            return item;
+        }
+
+        public bool NewListing(bool live, string upc, double price, string[] picFiles, string titleOverride, string description, Shipping shipping, EbayCategory ebayCategory, out string response, out string id, bool forceTitleOverride = false, 
+            int lbs = 0, int oz = 0)
+        {
+            ApiContext apiContext = GetApiContext(live);
+            bool useTitleOverride = forceTitleOverride;
+
+            {
+                var addItem = new VerifyAddFixedPriceItemCall(apiContext)
+                {
+                    Item = CreateItem(upc, price, titleOverride, description, shipping, ebayCategory, useTitleOverride, lbs, oz), 
+                    PictureFileList = new StringCollection(picFiles),
                 };
 
                 try
@@ -176,92 +215,10 @@ namespace GameTracking
                 }
             }
             {
-                var addItem = new AddFixedPriceItemCall(apiContext);
-                addItem.Item = new ItemType();
-
-                addItem.PictureFileList = new StringCollection();
-                addItem.PictureFileList.AddRange(picFiles);
-                addItem.Item.PictureDetails = new PictureDetailsType();
-                addItem.Item.PictureDetails.GalleryType = GalleryTypeCodeType.Gallery;
-                addItem.Item.BestOfferDetails = new BestOfferDetailsType
+                var addItem = new AddFixedPriceItemCall(apiContext) 
                 {
-                    BestOfferEnabled = true
-                };
-
-                addItem.Item.IncludeRecommendations = true;
-
-                addItem.Item.Title = useTitleOverride ? titleOverride : "";
-                addItem.Item.Description = description;
-                addItem.Item.PrimaryCategory = new CategoryType() { CategoryID = "139973" };
-                addItem.Item.ConditionID = 4000;
-                addItem.Item.ProductListingDetails = new ProductListingDetailsType
-                {
-                    UPC = upc
-                };
-                addItem.Item.StartPrice = new AmountType() { currencyID = CurrencyCodeType.USD, Value = price };
-                addItem.Item.Currency = CurrencyCodeType.USD;
-                addItem.Item.Country = CountryCodeType.US;
-                addItem.Item.DispatchTimeMax = 1;
-                addItem.Item.ListingDuration = "Days_30";
-                addItem.Item.ListingType = ListingTypeCodeType.FixedPriceItem;
-                addItem.Item.PaymentMethods = new BuyerPaymentMethodCodeTypeCollection { BuyerPaymentMethodCodeType.PayPal };
-                addItem.Item.PayPalEmailAddress = paypalEmail;
-                addItem.Item.PostalCode = locationZip.ToString();
-                addItem.Item.Quantity = 1;
-                addItem.Item.ReturnPolicy = new ReturnPolicyType()
-                {
-                    ReturnsAcceptedOption = "ReturnsAccepted",
-                    RefundOption = "MoneyBack",
-                    ReturnsWithinOption = "Days_14",
-                    ShippingCostPaidByOption = "Buyer"
-                };
-
-                string shippingMethod = "";
-                decimal lbs = 0;
-                decimal oz = 0;
-                switch (shipping)
-                {
-                    case Shipping.FirstClass:
-                        shippingMethod = "USPSFirstClass";
-                        oz = 5;
-                        break;
-                    case Shipping.SmallFlatRate:
-                        shippingMethod = "USPSPriorityMailSmallFlatRateBox";
-                        lbs = 5;
-                        break;
-                    case Shipping.MediumFlatRate:
-                        shippingMethod = "USPSPriorityMailFlatRateBox";
-                        lbs = 10;
-                        break;
-                    case Shipping.LargeFlatRate:
-                        shippingMethod = "USPSPriorityMailLargeFlatRateBox";
-                        lbs = 15;
-                        break;
-                    case Shipping.PriorityByWeight:
-                        shippingMethod = "USPSPriorityMail";
-                        lbs = 2;
-                        break;
-                    default:
-                        break;
-                }
-
-                addItem.Item.ShippingDetails = new ShippingDetailsType
-                {
-                    ShippingType = ShippingTypeCodeType.Calculated,
-                    CalculatedShippingRate = new CalculatedShippingRateType
-                    {
-                        OriginatingPostalCode = locationZip.ToString(),
-                        PackagingHandlingCosts = new AmountType { currencyID = CurrencyCodeType.USD, Value = 0.0 },
-                        ShippingPackage = ShippingPackageCodeType.PackageThickEnvelope,
-                        WeightMajor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "lbs", Value = lbs },
-                        WeightMinor = new MeasureType { measurementSystem = MeasurementSystemCodeType.English, unit = "oz", Value = oz }
-                    },
-                    ShippingServiceOptions = new ShippingServiceOptionsTypeCollection{
-                    new ShippingServiceOptionsType{
-                        ShippingService = shippingMethod,
-                        ShippingServicePriority = 1,
-                    }
-                }
+                    Item = CreateItem(upc, price, titleOverride, description, shipping, ebayCategory, useTitleOverride, lbs, oz), 
+                    PictureFileList = new StringCollection(picFiles),
                 };
 
                 try
