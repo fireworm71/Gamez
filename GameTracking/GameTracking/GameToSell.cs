@@ -28,8 +28,9 @@ namespace GameTracking
         ShipAs,
         Value,
         Response,
-        ID,
+        EbayID,
         BundleID,
+        GameID,
     }
 
     public class ToSell: INotifyPropertyChanged
@@ -255,7 +256,7 @@ namespace GameTracking
 
             _listEntry.Elements[(int)ToProcessSheetColumns.Value].Value = Price.ToString();
 
-            string ebayId = _listEntry.Elements[(int)ToProcessSheetColumns.ID].Value;
+            string ebayId = _listEntry.Elements[(int)ToProcessSheetColumns.EbayID].Value;
 
             if (Initalized != null)
             {
@@ -339,6 +340,7 @@ namespace GameTracking
                 }
                 newEntry.Elements.Add(new ListEntry.Custom { LocalName = "soldfor", Value = "" });
                 newEntry.Elements.Add(new ListEntry.Custom { LocalName = "status", Value = "Listed!" });
+                newEntry.Elements.Add(new ListEntry.Custom { LocalName = "gameid", Value = _listEntry.Elements[(int)ToProcessSheetColumns.GameID].Value });
 
                 return newEntry;
             }
@@ -350,7 +352,7 @@ namespace GameTracking
             await Task.Run(() =>
             {
                 _listEntry.Elements[(int)ToProcessSheetColumns.Response].Value = response;
-                _listEntry.Elements[(int)ToProcessSheetColumns.ID].Value = id;
+                _listEntry.Elements[(int)ToProcessSheetColumns.EbayID].Value = id;
                 try
                 {
                     _listEntry = (ListEntry)_listEntry.Update();

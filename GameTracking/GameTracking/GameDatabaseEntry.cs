@@ -20,9 +20,8 @@ namespace GameTracking
         PurchasePrice,
         Status,
         SellingPrice,
-        Adjustment,
-        Notes,
         EstPrice,
+        GameID,
     }
 
     public class GameDatabaseEntry : INotifyPropertyChanged
@@ -48,12 +47,18 @@ namespace GameTracking
             }
         }
 
-        private async void UpdateListEntry()
+        public async void UpdateListEntry()
         {
             await Task.Run(() =>
             {
                 _listEntry.Elements[(int)DataBaseColumn.Name].Value = _name.ToString();
                 _listEntry.Elements[(int)DataBaseColumn.EstPrice].Value = _price.ToString();
+                _listEntry.Elements[(int)DataBaseColumn.GameID].Value = _gameId.ToString();
+                _listEntry.Elements[(int)DataBaseColumn.Status].Value = _status;
+                if (_sellingPrice > 0.0f)
+                {
+                    _listEntry.Elements[(int)DataBaseColumn.SellingPrice].Value = _sellingPrice.ToString();
+                }
                 try
                 {
                     _listEntry = (ListEntry)_listEntry.Update();
@@ -101,11 +106,32 @@ namespace GameTracking
             private set { _upc = value; OnPropertyChanged(); }
         }
 
+        private string _status;
+        public string Status
+        {
+            get { return _status; }
+            private set { _status = value; OnPropertyChanged(); }
+        }
+
         private double _price;
         public double Price
         {
             get { return _price; }
             private set { _price = value; OnPropertyChanged(); }
+        }
+
+        private double _sellingPrice;
+        public double SellingPrice
+        {
+            get { return _sellingPrice; }
+            private set { _sellingPrice = value; OnPropertyChanged(); }
+        }
+
+        private int _gameId;
+        public int GameId
+        {
+            get { return _gameId; }
+            private set { _gameId = value; OnPropertyChanged(); }
         }
 
         private ObservableCollection<string> _picturePaths = new ObservableCollection<string>();
@@ -128,8 +154,20 @@ namespace GameTracking
 
             _url = listEntry.Elements[(int)DataBaseColumn.Link].Value;
             _condition = listEntry.Elements[(int)DataBaseColumn.Condition].Value;
+
+            _gameId = int.Parse(_listEntry.Elements[(int)DataBaseColumn.GameID].Value);
+            _status = _listEntry.Elements[(int)DataBaseColumn.Status].Value;
+            double sellingPrice;
+            if (double.TryParse(_listEntry.Elements[(int)DataBaseColumn.SellingPrice].Value, out sellingPrice))
+            {
+                _sellingPrice = sellingPrice;
+            }
+
             _details = new GameDetailer(_url, _condition);
-            Initalize();
+            //if (!_status.Contains("Sold"))
+            {
+                Initalize();
+            }
         }
 
         async void Initalize()
@@ -141,7 +179,7 @@ namespace GameTracking
                 Name = _details.GetName();
                 Upc = _details.GetUPC();
                 Platform = _details.GetPlatform();
-                Price = Math.Round(_details.GetSellingPrice(1.1f)) - 0.05;
+                Price = _details.GetSellingPrice(1.0f);
 
                 UpdateListEntry();
             }

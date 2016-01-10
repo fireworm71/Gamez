@@ -60,29 +60,30 @@ namespace GameTracking
             }
 
             // Define the URL to request the list feed of the worksheet.
-            listFeedLink = Sheets.GetEverythingSheet().Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
+            listFeedLink = Sheets.GetProcessedSheet().Links.FindService(GDataSpreadsheetsNameTable.ListRel, null);
 
             // Fetch the list feed of the worksheet.
             listQuery = new ListQuery(listFeedLink.HRef.ToString());
             listFeed = Sheets.GetSpreadsheetService().Query(listQuery);
 
-            var ebay = new EbayAccess();
-
-            foreach (var entry in listFeed.Entries.OfType<ListEntry>())
+            var groups = listFeed.Entries.OfType<ListEntry>().GroupBy(x => x.Elements[(int)ProcessedSheetColumns.EbayID].Value).ToArray();
+            foreach (var lot in groups)
             {
-                if (string.IsNullOrEmpty(entry.Elements[3].Value))
+                foreach (var game in lot)
                 {
-                    EbayAccess.ListingInfo info;
-                    ebay.GetListingInfo(ToProcess.live, entry.Elements[2].Value, out info);
-                    if (info.ViewUrl != null)
+                    string gameId = game.Elements[(int)ProcessedSheetColumns.GameID].Value;
+                    string ebayId = game.Elements[(int)ProcessedSheetColumns.EbayID].Value;
+
+                    int id = int.Parse(gameId);
+                    var dbEntry = _games.Single(x => x.GameId == id);
+                    if (dbEntry.Status.Contains("Sold") && dbEntry.Status != "Sold")
                     {
-                        entry.Elements[3].Value = info.ViewUrl;
+                        string soldId = dbEntry.Status.Substring(5);
+                        if (soldId != ebayId)
+                        {
+
+                        }
                     }
-                    else
-                    {
-                        entry.Elements[3].Value = "Error getting URL!";
-                    }
-                    entry.Update();
                 }
             }
         }

@@ -14,10 +14,11 @@ namespace GameTracking
     {
         Name,
         Condition,
-        ID,
+        EbayID,
         Link,
         SoldFor,
         Status,
+        GameID,
     }
 
     public class ListedGame : INotifyPropertyChanged
@@ -125,7 +126,7 @@ namespace GameTracking
         async void Initalize()
         {
             Name = _listEntry.Elements[(int)ProcessedSheetColumns.Name].Value;
-            string ebayId = _listEntry.Elements[(int)ProcessedSheetColumns.ID].Value;
+            string ebayId = _listEntry.Elements[(int)ProcessedSheetColumns.EbayID].Value;
 
             var ebay = new EbayAccess();
             EbayAccess.ListingInfo info;
